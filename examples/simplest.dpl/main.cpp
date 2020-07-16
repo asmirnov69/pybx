@@ -38,8 +38,10 @@ int main()
 				       }
 				     } else if (msg->type == ix::WebSocketMessageType::Message) {
 				       string res_s;
+				       cout << "message: " << msg->str << endl;
 				       dispatch(om, msg->str, &res_s);
-				       webSocket->send(res_s, msg->binary);
+				       cout << "response: " << res_s << endl;
+				       webSocket->send(res_s);
 				     } else {
 				       throw runtime_error("handle_ws_messages: unknown message");
 				     }
@@ -53,6 +55,7 @@ int main()
     throw runtime_error("main: can't listen");
   }
 
+  cout << "server start" << endl;
   server.start();
   server.wait();
 }

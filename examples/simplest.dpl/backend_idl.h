@@ -54,7 +54,7 @@ template <> inline
 StructDescriptor get_struct_descriptor<destination_0::res>()
 {
   StructDescriptor sd;
-  sd.add_member("object_id", &destination_0::res::res);
+  sd.add_member("res", &destination_0::res::res);
   return sd;
 }
 
@@ -93,7 +93,7 @@ template <> inline
 StructDescriptor get_struct_descriptor<destination_1::res>()
 {
   StructDescriptor sd;
-  sd.add_member("object_id", &destination_1::res::res);
+  sd.add_member("res", &destination_1::res::res);
   return sd;
 }
 
@@ -131,7 +131,7 @@ template <> inline
 StructDescriptor get_struct_descriptor<destination_2::res>()
 {
   StructDescriptor sd;
-  sd.add_member("object_id", &destination_2::res::res);
+  sd.add_member("res", &destination_2::res::res);
   return sd;
 }
 
@@ -140,11 +140,14 @@ StructDescriptor get_struct_descriptor<destination_2::res>()
 inline void dispatch(shared_ptr<ServerObjectManager> om, const string& incoming_msg, string* res_s)
 {
   auto jv = from_json(incoming_msg);
+  for (auto el: jv) {
+    cout << el.first << ": " << el.second << endl;
+  }
   map<string, string> j(jv.begin(), jv.end());
-  auto object_id = j["object-id"];
+  auto object_id = j[".object-id"];
   shared_ptr<ServerObject> object = om->lookup(object_id);
   
-  int destination_id = stoi(j["destination-id"]);
+  int destination_id = stoi(j[".destination-id"]);
   switch (destination_id) {
   case 0:
     {
