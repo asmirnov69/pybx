@@ -42,6 +42,22 @@ struct destination_0
   }
 };
 
+template <> inline
+StructDescriptor get_struct_descriptor<destination_0::req>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_0::req::object_id);
+  return sd;
+}
+
+template <> inline
+StructDescriptor get_struct_descriptor<destination_0::res>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_0::res::res);
+  return sd;
+}
+
 // Hello::sayAloha(self, language: str) -> str
 struct destination_1
 {
@@ -64,6 +80,24 @@ struct destination_1
   }
 };
 
+template <> inline
+StructDescriptor get_struct_descriptor<destination_1::req>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_1::req::object_id);
+  sd.add_member("language", &destination_1::req::language);
+  return sd;
+}
+
+template <> inline
+StructDescriptor get_struct_descriptor<destination_1::res>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_1::res::res);
+  return sd;
+}
+
+
 // Hello::get_holidays(self) -> str
 struct destination_2
 {
@@ -84,6 +118,22 @@ struct destination_2
     }
   }
 };
+
+template <> inline
+StructDescriptor get_struct_descriptor<destination_2::req>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_2::req::object_id);
+  return sd;
+}
+
+template <> inline
+StructDescriptor get_struct_descriptor<destination_2::res>()
+{
+  StructDescriptor sd;
+  sd.add_member("object_id", &destination_2::res::res);
+  return sd;
+}
 
 // dipole server dispatch
 
