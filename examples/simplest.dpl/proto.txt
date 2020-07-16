@@ -1,0 +1,16 @@
+request
+=======
+message-id: <int>
+message-type: method-call
+object-id: <string>
+destination-id: <int>
+nof-args: <int>
+arg: <string>
+...
+
+response
+========
+message-id: <int>
+message-type: method-call-return
+orig-message-id: <int>
+res: <string>
