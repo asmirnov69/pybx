@@ -1,16 +1,15 @@
 request
 =======
-message-id: <int>
 message-type: method-call
+message-id: <int>
+method-signature: <string>
 object-id: <string>
-destination-id: <int>
-nof-args: <int>
-arg: <string>
-...
+args: <json>
 
 response
 ========
-message-id: <int>
 message-type: method-call-return
+message-id: <int>
 orig-message-id: <int>
-res: <string>
+is-remote-exception: <bool>
+ret: <json>

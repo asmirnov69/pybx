@@ -8,182 +8,168 @@
 #include <stdexcept>
 using namespace std;
 
-#include <kvan/vector-json-io.h>
-#include "dipole.h"
+#include <kvan/json-io.h>
+#include <libdipole/communicator.h>
+#include <libdipole/proto.h>
 
 // stubs
-
-class Hello : public ServerObject {
+class HelloPtr;
+class HelloCBPtr;
+class Hello : public Dipole::Object {
 public:
+  typedef HelloPtr ptr;
   virtual string sayHello() = 0;
+#if 0
   virtual string sayAloha(const string& language) = 0;
   virtual string get_holidays() = 0;
+  virtual void register_hello_cb(const HelloCBPtr&) = 0;
+#endif
 };
+
+class HelloCB : public Dipole::Object {
+public:
+  virtual string confirmHello(const string& hello) = 0;
+};
+
+#if 0
+class HelloCBPtr : public Dipole::ObjectPtr
+{
+public:
+  string confirmHello(const string& hello) { req = ...; ws.send(req); add waiting q; }
+};
+#endif
 
 // Hello::sayHello(self) -> str
-struct destination_0
+struct Hello__sayHello : public Dipole::method_impl
 {
-  struct req {
-    int object_id;
-    // no args
+  struct args {
   };
 
-  struct res {
-    string res;
+  struct return_t {
+    string ret;
   };
 
-  static void do_call(shared_ptr<ServerObject> o, const req& request, res* response) {
+  void do_call(const string& req_s, string* res_s) override
+  {
+    Dipole::Request<args> req;
+    from_json(&req, req_s);
+    Dipole::Response<return_t> res;
+    res.orig_message_id = req.message_id;
+    
+    auto o = comm->find_object(req.object_id);
     if (auto self = dynamic_pointer_cast<Hello>(o);
 	self != nullptr) {
-      response->res = self->sayHello();
+      res.ret.ret = self->sayHello();
     } else {
       throw runtime_error("dyn type mismatch");
     }
+    ostringstream res_os;
+    to_json(res_os, res);
+    *res_s = res_os.str();
   }
 };
 
-template <> inline
-StructDescriptor get_struct_descriptor<destination_0::req>()
+template <> inline StructDescriptor
+get_struct_descriptor<Hello__sayHello::args>()
 {
-  StructDescriptor sd;
-  sd.add_member("object_id", &destination_0::req::object_id);
-  return sd;
-}
-
-template <> inline
-StructDescriptor get_struct_descriptor<destination_0::res>()
-{
-  StructDescriptor sd;
-  sd.add_member("res", &destination_0::res::res);
-  return sd;
-}
-
-// Hello::sayAloha(self, language: str) -> str
-struct destination_1
-{
-  struct req {
-    int object_id;
-    string language;
+  //typedef Hello__sayHello::args st;
+  StructDescriptor sd = {
   };
+  return sd;
+}
 
-  struct res {
-    string res;
+template <> inline StructDescriptor
+get_struct_descriptor<Dipole::Request<Hello__sayHello::args>>()
+{
+  typedef Dipole::Request<Hello__sayHello::args> st;
+  StructDescriptor sd = {
+    make_member_descriptor("message-type", &st::message_type),
+    make_member_descriptor("message-id", &st::message_id),
+    make_member_descriptor("message-signature", &st::method_signature),
+    make_member_descriptor("object-id", &st::object_id),
+    make_member_descriptor("args", &st::args)
+  };  
+  return sd;
+}
+
+template <> inline StructDescriptor
+get_struct_descriptor<Hello__sayHello::return_t>()
+{
+  typedef Hello__sayHello::return_t st;
+  StructDescriptor sd = {
+    make_member_descriptor("ret", &st::ret)
   };
-
-  static void do_call(shared_ptr<ServerObject> o, const req& request, res* response) {
-    if (auto self = dynamic_pointer_cast<Hello>(o);
-	self != nullptr) {
-      response->res = self->sayAloha(request.language);
-    } else {
-      throw runtime_error("dyn type mismatch");
-    }
-  }
-};
-
-template <> inline
-StructDescriptor get_struct_descriptor<destination_1::req>()
-{
-  StructDescriptor sd;
-  sd.add_member("object_id", &destination_1::req::object_id);
-  sd.add_member("language", &destination_1::req::language);
   return sd;
 }
 
-template <> inline
-StructDescriptor get_struct_descriptor<destination_1::res>()
+template <> inline StructDescriptor
+get_struct_descriptor<Dipole::Response<Hello__sayHello::return_t>>()
 {
-  StructDescriptor sd;
-  sd.add_member("res", &destination_1::res::res);
-  return sd;
-}
-
-
-// Hello::get_holidays(self) -> str
-struct destination_2
-{
-  struct req {
-    int object_id;
+  typedef Dipole::Response<Hello__sayHello::return_t> st;
+  StructDescriptor sd = {
+    make_member_descriptor("message-type", &st::message_type),
+    make_member_descriptor("message-id", &st::message_id),
+    make_member_descriptor("orig-message-id", &st::orig_message_id),
+    make_member_descriptor("is-remote-exception", &st::is_remote_exception),
+    make_member_descriptor("ret", &st::ret)
   };
-
-  struct res {
-    string res;
-  };
-
-  static void do_call(shared_ptr<ServerObject> o, const req& request, res* response) {
-    if (auto self = dynamic_pointer_cast<Hello>(o);
-	self != nullptr) {
-      response->res = self->get_holidays();
-    } else {
-      throw runtime_error("dyn type mismatch");
-    }
-  }
-};
-
-template <> inline
-StructDescriptor get_struct_descriptor<destination_2::req>()
-{
-  StructDescriptor sd;
-  sd.add_member("object_id", &destination_2::req::object_id);
   return sd;
 }
 
-template <> inline
-StructDescriptor get_struct_descriptor<destination_2::res>()
+// ptr
+class HelloPtr : public Dipole::ObjectPtr
 {
-  StructDescriptor sd;
-  sd.add_member("res", &destination_2::res::res);
-  return sd;
-}
-
-// dipole server dispatch
-
-inline void dispatch(shared_ptr<ServerObjectManager> om, const string& incoming_msg, string* res_s)
-{
-  auto jv = from_json(incoming_msg);
-  for (auto el: jv) {
-    cout << el.first << ": " << el.second << endl;
-  }
-  map<string, string> j(jv.begin(), jv.end());
-  auto object_id = j[".object-id"];
-  shared_ptr<ServerObject> object = om->lookup(object_id);
+private:
+  Dipole::Communicator* comm;
   
-  int destination_id = stoi(j[".destination-id"]);
-  switch (destination_id) {
-  case 0:
-    {
-      destination_0::req req; // no args
-      destination_0::res res;
-      destination_0::do_call(object, req, &res);
-      ostringstream res_str; to_json<destination_0::res>(res_str, res);
-      *res_s = res_str.str();
+public:
+  HelloPtr(Dipole::Communicator* comm) { this->comm = comm; }
+  string sayHello() {
+    Dipole::Request<Hello__sayHello::args> req{
+      .message_type = Dipole::message_type_t::METHOD_CALL,
+	.message_id = Dipole::create_new_message_id(),
+	.method_signature = "Hello__sayHello",
+	.object_id = object_id,
+	.args = Hello__sayHello::args()
+	};
+    ostringstream json_os;
+    to_json(json_os, req);
+    ws->sendBinary(json_os.str());
+    string res_s = comm->wait_for_response(req.message_id);
+    Dipole::Response<Hello__sayHello::return_t> res;
+    from_json(&res, res_s);
+    if (res.is_remote_exception) {
+      throw Dipole::RemoteException(res.ret.ret);
     }
-    break;
-  case 1:
-    {
-      destination_1::req req;
-#if 0
-      for (auto kv: j.find_kvs("args")) {
-	if (kv.key == "language") {
-	  req.language = kv.value;
-	}
-      }
-#endif
-    destination_1::res res;
-    destination_1::do_call(object, req, &res);
-    ostringstream res_str; to_json<destination_1::res>(res_str, res);
-    *res_s = res_str.str();
-    }
-    break;
-  case 2:
-    {
-      destination_2::req req; // no args
-      destination_2::res res;
-      destination_2::do_call(object, req, &res);
-      ostringstream res_str; to_json<destination_2::res>(res_str, res);
-      *res_s = res_str.str();
-    }
-    break;
+    return res.ret.ret;
   }
+
+#if 0
+  string sayAloha(const string& language) { req = ...; ws.send(req); add waiting q; }
+  string get_holidays() { req = ...; ws.send(req); add waiting q; }
+  void register_hello_cb(const HelloCBPtr&) { req = ...; ws.send(req); add waiting q; }
+#endif
+};
+
+template<> inline
+shared_ptr<HelloPtr>
+Dipole::ptr_cast(Communicator* comm, ObjectPtr o_ptr)
+{
+  auto ret = make_shared<HelloPtr>(comm);
+  ret->ws_url = o_ptr.ws_url;
+  ret->object_id = o_ptr.object_id;
+  ret->ws = o_ptr.ws;
+  return ret;
 }
+
+// register all methods
+
+static int _0 = Dipole::Methods::register_method("Hello::sayHello", make_shared<Hello__sayHello>());
+#if 0
+int _1 = Dipole::Methods::register_method("Hello::sayAloha", make_shared<Hello__sayAloha>());
+int _2 = Dipole::Methods::register_method("Hello::get_holidays", make_shared<Hello__get_holidays>());
+int _3 = Dipole::Methods::register_method("Hello::register_hello_cb", make_shared<Hello__register_hello_cb>());
+int _4 = Dipole::Methods::register_method("HelloCB::confirmHello", make_shared<HelloCB__confirmHello>());
+#endif
 
 #endif

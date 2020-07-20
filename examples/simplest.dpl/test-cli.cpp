@@ -1,48 +1,25 @@
 #include <iostream>
 using namespace std;
 
-#include <unistd.h>
-#include <ixwebsocket/IXWebSocketServer.h>
+#include <libdipole/communicator.h>
+#include "backend_idl.h"
 
 int main() {
-  ix::WebSocket webSocket;
-  std::string url("ws://localhost:8080/");
-  webSocket.setUrl(url);
+  Dipole::Communicator comm;
+  Dipole::ObjectPtr ptr = comm.connect("ws://localhost:8080/", "hello");
+  shared_ptr<HelloPtr> hello_o = Dipole::ptr_cast<HelloPtr>(&comm, ptr);
+  cout << "got back: " << hello_o->sayHello() << endl;
 
-  // Optional heart beat, sent every 45 seconds when there is not any traffic
-  // to make sure that load balancers do not kill an idle connection.
-  //webSocket.setPingInterval(45);
-  
-  // Per message deflate connection is enabled by default. You can tweak its parameters or disable it
-  //webSocket.disablePerMessageDeflate();
+#if 0
+  cout << "got back: " << hello_o->sayAloha("hawaii") << endl;
 
-  // Setup a callback to be fired when a message or an event (open, close, error) is received
-  webSocket.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
-    {
-      cerr << "got something" << endl;
-        if (msg->type == ix::WebSocketMessageType::Message)
-        {
-            std::cout << msg->str << std::endl;
-        }
-    }
-  );
+  auto hellocb_o = make_shared<HelloCBImpl>();
+  string hellocb_o_id = comm.add_object(hellocb_o);
+  Dipole::ObjPtr hellocb_o_ptr = communicator.get_object_ptr(hellocb_o_id);
+  HelloCBPtr hellocb_ptr = Dipole::ptr_cast<HelloCB>(hellocb_o_ptr);
 
-  // Now that our callback is setup, we can start our background thread and receive messages
-  webSocket.start();
-  while (webSocket.getReadyState() != ix::ReadyState::Open) {
-    cerr << "in progress..." << endl;
-    sleep(2);
-  }
-  
-  // The message can be sent in BINARY mode (useful if you send MsgPack data for example)
-  //webSocket.send("hello");
-  webSocket.sendBinary(R"D(
-  {"message-id": 1, "message-type": "method-call",
-   "object-id": "hello", "destination-id": 0})D");
-
-  #if 0
-  // ... finally ...
-  // Stop the connection
-  webSocket.stop();
+  hello_o->register_hello_cb(hellocb_ptr);
+  cout << "got back: " << hello_o->sayHello() << endl;
+  cout << "got back: " << hello_p->sayAloha("hawaii") << endl;
   #endif
 }
