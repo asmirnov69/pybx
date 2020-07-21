@@ -18,6 +18,7 @@ string HelloI::sayHello() {
   //for (auto& cb: cbs) {
   //  cb.confirmHello("Hello");
   //}
+  cout << "Hello::sayHello" << endl;
   return "Hello";
 }
 

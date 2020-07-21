@@ -6,10 +6,15 @@ using namespace std;
 
 #include <libdipole/communicator.h>
 #include <libdipole/proto.h>
+#include <libdipole/remote-methods.h>
+
+Dipole::Object::~Object()
+{
+}
 
 Dipole::Communicator::Communicator()
 {
-  Methods::set_comminicator(this);
+  RemoteMethods::set_comminicator(this);
 }
 
 void Dipole::Communicator::set_listen_port(int listen_port)
@@ -29,6 +34,18 @@ string Dipole::Communicator::add_object(shared_ptr<Object> o, const string& obje
   return object_id;
 }
 
+shared_ptr<Dipole::Object>
+Dipole::Communicator::find_object(const string& object_id)
+{
+  auto it = objects.find(object_id);
+  if (it == objects.end()) {
+    ostringstream m;
+    m << "Dipole::Communicator::find_object: can't find object " << object_id;
+    throw runtime_error(m.str());
+  }
+  return (*it).second;
+}
+    
 Dipole::ObjectPtr Dipole::Communicator::get_object_ptr(const string& object_id)
 {
   ObjectPtr ret;
@@ -76,19 +93,46 @@ void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& 
   }
 }
 
-void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg)
+void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket>  ws,
+						const string& msg)
 {
   string method_signature = get_method_signature(msg);
-  auto method_call = Methods::find_method(method_signature);
+  auto method_call = RemoteMethods::find_method(method_signature);
   string res_msg;
   method_call->do_call(msg, &res_msg);
+  cout << "Dipole::Communicator::dispatch_method_call response: " << res_msg << endl;
   ws->sendBinary(res_msg);
 }
 
 void Dipole::Communicator::dispatch_method_call_return(const string& msg)
 {
-  int orig_message_id = get_orig_message_id(msg);
+  auto orig_message_id = get_orig_message_id(msg);
   this->signal_response(orig_message_id, msg);
+}
+
+string Dipole::Communicator::wait_for_response(const string& message_id)
+{
+  auto it = waiters.find(message_id);
+  if (it != waiters.end()) {
+    ostringstream m;
+    m << "Dipole::Communicator::wait_for_response: message_id is already waited for: " << message_id;
+    throw runtime_error(m.str());
+  }
+  waiters[message_id] = Waiter();
+  string ret; waiters[message_id].blocking_get(&ret);
+  waiters.erase(message_id);
+  return ret;
+}
+
+void Dipole::Communicator::signal_response(const string& message_id, const string& msg)
+{
+  auto it = waiters.find(message_id);
+  if (it == waiters.end()) {
+    ostringstream m;
+    m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
+    throw runtime_error(m.str());
+  }
+  (*it).second.blocking_put(msg);
 }
 
 void Dipole::Communicator::run()
@@ -119,6 +163,8 @@ void Dipole::Communicator::run()
 					 string res_s;
 					 cout << "message: " << msg->str << endl;
 					 this->dispatch(webSocket, msg->str);
+				       } else if (msg->type == ix::WebSocketMessageType::Close) {
+					 cout << "connection closed" << endl;
 				       } else {
 					 throw runtime_error("handle_ws_messages: unknown message");
 				       }
@@ -131,7 +177,6 @@ void Dipole::Communicator::run()
     throw runtime_error("main: can't listen");
   }
   
-  cout << "server start" << endl;
   server.start();
   server.wait();    
 }

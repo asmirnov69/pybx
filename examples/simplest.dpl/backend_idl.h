@@ -11,6 +11,7 @@ using namespace std;
 #include <kvan/json-io.h>
 #include <libdipole/communicator.h>
 #include <libdipole/proto.h>
+#include <libdipole/remote-methods.h>
 
 // stubs
 class HelloPtr;
@@ -54,6 +55,7 @@ struct Hello__sayHello : public Dipole::method_impl
     Dipole::Request<args> req;
     from_json(&req, req_s);
     Dipole::Response<return_t> res;
+    res.message_id = Dipole::create_new_message_id();
     res.orig_message_id = req.message_id;
     
     auto o = comm->find_object(req.object_id);
@@ -85,7 +87,7 @@ get_struct_descriptor<Dipole::Request<Hello__sayHello::args>>()
   StructDescriptor sd = {
     make_member_descriptor("message-type", &st::message_type),
     make_member_descriptor("message-id", &st::message_id),
-    make_member_descriptor("message-signature", &st::method_signature),
+    make_member_descriptor("method-signature", &st::method_signature),
     make_member_descriptor("object-id", &st::object_id),
     make_member_descriptor("args", &st::args)
   };  
@@ -164,12 +166,12 @@ Dipole::ptr_cast(Communicator* comm, ObjectPtr o_ptr)
 
 // register all methods
 
-static int _0 = Dipole::Methods::register_method("Hello::sayHello", make_shared<Hello__sayHello>());
+static int _0 = Dipole::RemoteMethods::register_method("Hello__sayHello", make_shared<Hello__sayHello>());
 #if 0
-int _1 = Dipole::Methods::register_method("Hello::sayAloha", make_shared<Hello__sayAloha>());
-int _2 = Dipole::Methods::register_method("Hello::get_holidays", make_shared<Hello__get_holidays>());
-int _3 = Dipole::Methods::register_method("Hello::register_hello_cb", make_shared<Hello__register_hello_cb>());
-int _4 = Dipole::Methods::register_method("HelloCB::confirmHello", make_shared<HelloCB__confirmHello>());
+int _1 = Dipole::Methods::register_method("Hello__sayAloha", make_shared<Hello__sayAloha>());
+int _2 = Dipole::Methods::register_method("Hello__get_holidays", make_shared<Hello__get_holidays>());
+int _3 = Dipole::Methods::register_method("Hello__register_hello_cb", make_shared<Hello__register_hello_cb>());
+int _4 = Dipole::Methods::register_method("HelloCB__confirmHello", make_shared<HelloCB__confirmHello>());
 #endif
 
 #endif

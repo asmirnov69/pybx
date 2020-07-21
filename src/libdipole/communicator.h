@@ -8,6 +8,7 @@
 using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
+#include <kvan/cbq.h>
 
 namespace Dipole {
 
@@ -31,31 +32,14 @@ namespace Dipole {
     explicit RemoteException(const string& m) : runtime_error(m) {}
   };
 
-  class Communicator;
-  class method_impl {
-  protected:
-    Communicator* comm;
-    
-  public:
-    virtual void do_call(const string& req_s, string* res_s) = 0;
-  };
-  
-  class Methods
-  {
-  public:
-    static int register_method(const string& method_signature, shared_ptr<method_impl>);
-    static shared_ptr<method_impl> find_method(const string& method_signature);
-    static void set_comminicator(Communicator*);
-  };
-
   class Communicator
   {
   private:
     int listen_port{-1};
     map<string, shared_ptr<Object>> objects; // object_id -> object
     
-    class Waiter {};
-    map<int, Waiter> waiters; // message_id -> waiter
+    typedef CBQ<string, 1> Waiter;
+    map<string, Waiter> waiters; // message_id -> waiter
 
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
@@ -71,8 +55,8 @@ namespace Dipole {
     ObjectPtr connect(const string& ws_url, const string& obj_id);
 
     shared_ptr<Object> find_object(const string& object_id);
-    string wait_for_response(int message_id);
-    void signal_response(int message_id, const string& msg);
+    string wait_for_response(const string& message_id);
+    void signal_response(const string& message_id, const string& msg);
   };
 
   template <class O_ptr> shared_ptr<O_ptr> ptr_cast(Communicator*, ObjectPtr);

@@ -8,7 +8,10 @@ int main() {
   Dipole::Communicator comm;
   Dipole::ObjectPtr ptr = comm.connect("ws://localhost:8080/", "hello");
   shared_ptr<HelloPtr> hello_o = Dipole::ptr_cast<HelloPtr>(&comm, ptr);
-  cout << "got back: " << hello_o->sayHello() << endl;
+  cout << "start" << endl;
+  for (int i = 0; i < 5; i++) {
+    cout << "got back: " << hello_o->sayHello() << endl;
+  }
 
 #if 0
   cout << "got back: " << hello_o->sayAloha("hawaii") << endl;
