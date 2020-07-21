@@ -8,6 +8,7 @@
 using namespace std;
 
 #include <kvan/enum-io.h>
+#include <kvan/struct-descriptor.h>
 
 namespace Dipole {
   enum class message_type_t { METHOD_CALL = 0, METHOD_CALL_RETURN };
@@ -32,6 +33,7 @@ namespace Dipole {
     bool is_remote_exception{false};
     RET ret;
   };
+
 };
 
 template <> inline string
@@ -63,5 +65,42 @@ void set_enum_value<Dipole::message_type_t>(Dipole::message_type_t* o, const str
   }
 }
 
+template <class T, template <typename> class TT>
+struct get_StructDescriptor_T {
+  static StructDescriptor get_struct_descriptor() {
+    static_assert(assert_false<T>::value, "provide spec");
+    return StructDescriptor();
+  }
+};
+
+template <class ARGS>
+struct get_StructDescriptor_T<ARGS, Dipole::Request> {
+  static StructDescriptor get_struct_descriptor() {
+    typedef Dipole::Request<ARGS> st;
+    static const StructDescriptor sd = {
+      make_member_descriptor("message-type", &st::message_type),
+      make_member_descriptor("message-id", &st::message_id),
+      make_member_descriptor("method-signature", &st::method_signature),
+      make_member_descriptor("object-id", &st::object_id),
+      make_member_descriptor("args", &st::args)
+    };  
+    return sd;
+  }
+};
+
+template <class RET>
+struct get_StructDescriptor_T<RET, Dipole::Response> {
+  static StructDescriptor get_struct_descriptor() {
+    typedef Dipole::Response<RET> st;
+    static const StructDescriptor sd = {
+      make_member_descriptor("message-type", &st::message_type),
+      make_member_descriptor("message-id", &st::message_id),
+      make_member_descriptor("orig-message-id", &st::orig_message_id),
+      make_member_descriptor("is-remote-exception", &st::is_remote_exception),
+      make_member_descriptor("ret", &st::ret)
+    };  
+    return sd;
+  }
+};  
 
 #endif

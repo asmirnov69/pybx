@@ -45,7 +45,7 @@ struct Hello__sayHello : public Dipole::method_impl
 {
   struct args {
   };
-
+  
   struct return_t {
     string ret;
   };
@@ -83,15 +83,7 @@ get_struct_descriptor<Hello__sayHello::args>()
 template <> inline StructDescriptor
 get_struct_descriptor<Dipole::Request<Hello__sayHello::args>>()
 {
-  typedef Dipole::Request<Hello__sayHello::args> st;
-  StructDescriptor sd = {
-    make_member_descriptor("message-type", &st::message_type),
-    make_member_descriptor("message-id", &st::message_id),
-    make_member_descriptor("method-signature", &st::method_signature),
-    make_member_descriptor("object-id", &st::object_id),
-    make_member_descriptor("args", &st::args)
-  };  
-  return sd;
+  return get_StructDescriptor_T<Hello__sayHello::args, Dipole::Request>::get_struct_descriptor();
 }
 
 template <> inline StructDescriptor
@@ -107,15 +99,7 @@ get_struct_descriptor<Hello__sayHello::return_t>()
 template <> inline StructDescriptor
 get_struct_descriptor<Dipole::Response<Hello__sayHello::return_t>>()
 {
-  typedef Dipole::Response<Hello__sayHello::return_t> st;
-  StructDescriptor sd = {
-    make_member_descriptor("message-type", &st::message_type),
-    make_member_descriptor("message-id", &st::message_id),
-    make_member_descriptor("orig-message-id", &st::orig_message_id),
-    make_member_descriptor("is-remote-exception", &st::is_remote_exception),
-    make_member_descriptor("ret", &st::ret)
-  };
-  return sd;
+  return get_StructDescriptor_T<Hello__sayHello::return_t, Dipole::Response>::get_struct_descriptor();
 }
 
 // ptr
