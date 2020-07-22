@@ -16,7 +16,8 @@ int main() {
 	 << " " << get_enum_value_string(g.color)
 	 << endl;
   }
-
+      hello_o->sayHello("HI");
+      
 #if 0
   cout << "got back: " << hello_o->sayAloha("hawaii") << endl;
 

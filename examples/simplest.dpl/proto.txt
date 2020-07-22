@@ -11,5 +11,11 @@ response
 message-type: method-call-return
 message-id: <uuid>
 orig-message-id: <uuid>
-is-remote-exception: <bool>
-ret: <json>
+retval: <json>
+
+exception
+=========
+message-type: method-call-exception
+message-id: <uuid>
+orig-message-id: <uuid>
+remote-exception-text: <string>

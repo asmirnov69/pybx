@@ -90,6 +90,9 @@ void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& 
   case message_type_t::METHOD_CALL_RETURN:
     dispatch_method_call_return(msg);
     break;
+  case message_type_t::METHOD_CALL_EXCEPTION:
+    dispatch_method_call_exception(msg);
+    break;
   }
 }
 
@@ -109,6 +112,12 @@ void Dipole::Communicator::dispatch_method_call_return(const string& msg)
   auto orig_message_id = get_orig_message_id(msg);
   this->signal_response(orig_message_id, msg);
 }
+
+void Dipole::Communicator::dispatch_method_call_exception(const string& msg)
+{
+  auto orig_message_id = get_orig_message_id(msg);
+  this->signal_response(orig_message_id, msg);
+} 
 
 string Dipole::Communicator::wait_for_response(const string& message_id)
 {

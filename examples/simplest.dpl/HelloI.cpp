@@ -18,6 +18,11 @@ Greetings HelloI::sayHello(string weSay) {
   //for (auto& cb: cbs) {
   //  cb.confirmHello("Hello");
   //}
+  if (weSay != "hi") {
+    ostringstream m;
+    m << "unexpected weSay value: " << weSay;
+    throw runtime_error(m.str());
+  }
   cout << "Hello::sayHello" << endl;
   Greetings ret;
   ret.language = "english";

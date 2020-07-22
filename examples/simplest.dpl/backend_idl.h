@@ -69,55 +69,64 @@ public:
 // Hello::sayHello(self, weSay: str) -> Greetings
 struct Hello__sayHello : public Dipole::method_impl
 {
-  struct args {
+  struct args_t {
     string weSay;
   };
   
   struct return_t {
-    Greetings ret;
+    Greetings retval;
   };
 
   void do_call(const string& req_s, string* res_s) override
   {
-    Dipole::Request<args> req;
+    Dipole::Request<args_t> req;
     from_json(&req, req_s);
-    Dipole::Response<return_t> res;
-    res.message_id = Dipole::create_new_message_id();
-    res.orig_message_id = req.message_id;
     
     auto o = comm->find_object(req.object_id);
+    ostringstream res_os;
     if (auto self = dynamic_pointer_cast<Hello>(o);
 	self != nullptr) {
-      res.ret.ret = self->sayHello(req.args.weSay);
+      try {
+	Dipole::Response<return_t> res;
+	res.message_id = Dipole::create_new_message_id();
+	res.orig_message_id = req.message_id;
+	res.retval.retval = self->sayHello(req.args.weSay);
+	to_json(res_os, res);
+      } catch (exception& e) {
+	Dipole::ExceptionResponse eres;
+	eres.message_id = Dipole::create_new_message_id();
+	eres.orig_message_id = req.message_id;
+	eres.remote_exception_text = e.what();
+	to_json(res_os, eres);
+      }
     } else {
       throw runtime_error("dyn type mismatch");
     }
-    ostringstream res_os;
-    to_json(res_os, res);
+
     *res_s = res_os.str();
   }
 };
 
 template <> inline StructDescriptor
-get_struct_descriptor<Hello__sayHello::args>()
+get_struct_descriptor<Hello__sayHello::args_t>()
 {
   static const StructDescriptor sd = {
-    make_member_descriptor("weSay", &Hello__sayHello::args::weSay)
+    make_member_descriptor("weSay", &Hello__sayHello::args_t::weSay)
   };
   return sd;
 }
 
 template <> inline StructDescriptor
-get_struct_descriptor<Dipole::Request<Hello__sayHello::args>>()
+get_struct_descriptor<Dipole::Request<Hello__sayHello::args_t>>()
 {
-  return get_StructDescriptor_T<Hello__sayHello::args, Dipole::Request>::get_struct_descriptor();
+  return get_StructDescriptor_T<Hello__sayHello::args_t, Dipole::Request>::get_struct_descriptor();
 }
 
 template <> inline StructDescriptor
 get_struct_descriptor<Hello__sayHello::return_t>()
 {
   static const StructDescriptor sd = {
-    make_member_descriptor("ret", &Hello__sayHello::return_t::ret)
+    make_member_descriptor("ret", &Hello__sayHello::return_t::retval)
   };
   return sd;
 }
@@ -137,25 +146,41 @@ private:
 public:
   HelloPtr(Dipole::Communicator* comm) { this->comm = comm; }
   Greetings sayHello(string weSay) {
-    Dipole::Request<Hello__sayHello::args> req{
+    Dipole::Request<Hello__sayHello::args_t> req{
       .message_type = Dipole::message_type_t::METHOD_CALL,
 	.message_id = Dipole::create_new_message_id(),
 	.method_signature = "Hello__sayHello",
 	.object_id = object_id,
-	.args = Hello__sayHello::args()
+	.args = Hello__sayHello::args_t()
 	};
     req.args.weSay = weSay;
+    Greetings ret;
     
     ostringstream json_os;
     to_json(json_os, req);
     ws->sendBinary(json_os.str());
     string res_s = comm->wait_for_response(req.message_id);
-    Dipole::Response<Hello__sayHello::return_t> res;
-    from_json(&res, res_s);
-    if (res.is_remote_exception) {
-      throw Dipole::RemoteException("some exception text goes here");
+    auto res_message_type = Dipole::get_message_type(res_s);
+    switch (res_message_type) {
+      case Dipole::message_type_t::METHOD_CALL_RETURN:
+	{
+	  Dipole::Response<Hello__sayHello::return_t> res;
+	  from_json(&res, res_s);
+	  ret = res.retval.retval;
+	}
+	break;
+	case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
+	  {
+	    Dipole::ExceptionResponse eres;
+	    from_json(&eres, res_s);
+	    throw Dipole::RemoteException(eres.remote_exception_text);
+	  }
+	  break;
+	  case Dipole::message_type_t::METHOD_CALL:
+	    throw runtime_error("HelloPtr::sayHello: unexcepted message type");
+	    break;
     }
-    return res.ret.ret;
+    return ret;
   }
 };
 

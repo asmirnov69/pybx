@@ -29,7 +29,9 @@ namespace Dipole {
   class RemoteException : public runtime_error
   {
   public:
-    explicit RemoteException(const string& m) : runtime_error(m) {}
+    explicit RemoteException(const string& m) :
+      runtime_error(string("remote exception:\n") + m)
+    {}
   };
 
   class Communicator
@@ -44,6 +46,7 @@ namespace Dipole {
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
     void dispatch_method_call_return(const string& msg);
+    void dispatch_method_call_exception(const string& msg);
     
   public:
     explicit Communicator();
