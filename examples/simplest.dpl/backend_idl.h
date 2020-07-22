@@ -14,40 +14,67 @@ using namespace std;
 #include <libdipole/remote-methods.h>
 
 // stubs
+
+enum class Color {
+  NORMAL = 0,
+  RED,
+  GREEN
+};
+
+template <> inline string get_enum_value_string<Color>(Color v) {
+  string ret;
+  switch (v) {
+  case Color::NORMAL: ret = "NORMAL"; break;
+  case Color::RED: ret = "RED"; break;
+  case Color::GREEN: ret = "GREEN"; break;
+  }
+  return ret;
+}
+
+template <> inline void set_enum_value<Color>(Color* v, const string& new_v)
+{
+  if (new_v == "NORMAL") *v = Color::NORMAL;
+  else if (new_v == "RED") *v = Color::RED;
+  else if (new_v == "GREEN") *v = Color::GREEN;
+  else {
+    ostringstream m;
+    m << "set_enum_value for Color: unknown string " << new_v;
+    throw runtime_error(m.str());    
+  }
+}
+
+struct Greetings {
+  string language;
+  string text;
+  Color color;
+};
+
+template <> inline StructDescriptor get_struct_descriptor<Greetings>()
+{
+  static const StructDescriptor sd = {
+    make_member_descriptor("language", &Greetings::language),
+    make_member_descriptor("text", &Greetings::text),
+    make_member_descriptor("color", &Greetings::color)
+  };
+  return sd;
+}
+
 class HelloPtr;
-class HelloCBPtr;
 class Hello : public Dipole::Object {
 public:
   typedef HelloPtr ptr;
-  virtual string sayHello() = 0;
-#if 0
-  virtual string sayAloha(const string& language) = 0;
-  virtual string get_holidays() = 0;
-  virtual void register_hello_cb(const HelloCBPtr&) = 0;
-#endif
+  virtual Greetings sayHello(string weSay) = 0;
 };
 
-class HelloCB : public Dipole::Object {
-public:
-  virtual string confirmHello(const string& hello) = 0;
-};
-
-#if 0
-class HelloCBPtr : public Dipole::ObjectPtr
-{
-public:
-  string confirmHello(const string& hello) { req = ...; ws.send(req); add waiting q; }
-};
-#endif
-
-// Hello::sayHello(self) -> str
+// Hello::sayHello(self, weSay: str) -> Greetings
 struct Hello__sayHello : public Dipole::method_impl
 {
   struct args {
+    string weSay;
   };
   
   struct return_t {
-    string ret;
+    Greetings ret;
   };
 
   void do_call(const string& req_s, string* res_s) override
@@ -61,7 +88,7 @@ struct Hello__sayHello : public Dipole::method_impl
     auto o = comm->find_object(req.object_id);
     if (auto self = dynamic_pointer_cast<Hello>(o);
 	self != nullptr) {
-      res.ret.ret = self->sayHello();
+      res.ret.ret = self->sayHello(req.args.weSay);
     } else {
       throw runtime_error("dyn type mismatch");
     }
@@ -74,8 +101,8 @@ struct Hello__sayHello : public Dipole::method_impl
 template <> inline StructDescriptor
 get_struct_descriptor<Hello__sayHello::args>()
 {
-  //typedef Hello__sayHello::args st;
-  StructDescriptor sd = {
+  static const StructDescriptor sd = {
+    make_member_descriptor("weSay", &Hello__sayHello::args::weSay)
   };
   return sd;
 }
@@ -89,9 +116,8 @@ get_struct_descriptor<Dipole::Request<Hello__sayHello::args>>()
 template <> inline StructDescriptor
 get_struct_descriptor<Hello__sayHello::return_t>()
 {
-  typedef Hello__sayHello::return_t st;
-  StructDescriptor sd = {
-    make_member_descriptor("ret", &st::ret)
+  static const StructDescriptor sd = {
+    make_member_descriptor("ret", &Hello__sayHello::return_t::ret)
   };
   return sd;
 }
@@ -110,7 +136,7 @@ private:
   
 public:
   HelloPtr(Dipole::Communicator* comm) { this->comm = comm; }
-  string sayHello() {
+  Greetings sayHello(string weSay) {
     Dipole::Request<Hello__sayHello::args> req{
       .message_type = Dipole::message_type_t::METHOD_CALL,
 	.message_id = Dipole::create_new_message_id(),
@@ -118,6 +144,8 @@ public:
 	.object_id = object_id,
 	.args = Hello__sayHello::args()
 	};
+    req.args.weSay = weSay;
+    
     ostringstream json_os;
     to_json(json_os, req);
     ws->sendBinary(json_os.str());
@@ -125,16 +153,10 @@ public:
     Dipole::Response<Hello__sayHello::return_t> res;
     from_json(&res, res_s);
     if (res.is_remote_exception) {
-      throw Dipole::RemoteException(res.ret.ret);
+      throw Dipole::RemoteException("some exception text goes here");
     }
     return res.ret.ret;
   }
-
-#if 0
-  string sayAloha(const string& language) { req = ...; ws.send(req); add waiting q; }
-  string get_holidays() { req = ...; ws.send(req); add waiting q; }
-  void register_hello_cb(const HelloCBPtr&) { req = ...; ws.send(req); add waiting q; }
-#endif
 };
 
 template<> inline
@@ -151,11 +173,5 @@ Dipole::ptr_cast(Communicator* comm, ObjectPtr o_ptr)
 // register all methods
 
 static int _0 = Dipole::RemoteMethods::register_method("Hello__sayHello", make_shared<Hello__sayHello>());
-#if 0
-int _1 = Dipole::Methods::register_method("Hello__sayAloha", make_shared<Hello__sayAloha>());
-int _2 = Dipole::Methods::register_method("Hello__get_holidays", make_shared<Hello__get_holidays>());
-int _3 = Dipole::Methods::register_method("Hello__register_hello_cb", make_shared<Hello__register_hello_cb>());
-int _4 = Dipole::Methods::register_method("HelloCB__confirmHello", make_shared<HelloCB__confirmHello>());
-#endif
 
 #endif

@@ -14,12 +14,16 @@ void HelloI::register_hello_cb(const HelloCBPtr& cb_ptr)
 }
 #endif
 
-string HelloI::sayHello() {
+Greetings HelloI::sayHello(string weSay) {
   //for (auto& cb: cbs) {
   //  cb.confirmHello("Hello");
   //}
   cout << "Hello::sayHello" << endl;
-  return "Hello";
+  Greetings ret;
+  ret.language = "english";
+  ret.text = "Hello";
+  ret.color = Color::NORMAL;
+  return ret;
 }
 
 #if 0

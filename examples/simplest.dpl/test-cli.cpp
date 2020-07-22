@@ -10,7 +10,11 @@ int main() {
   shared_ptr<HelloPtr> hello_o = Dipole::ptr_cast<HelloPtr>(&comm, ptr);
   cout << "start" << endl;
   for (int i = 0; i < 5; i++) {
-    cout << "got back: " << hello_o->sayHello() << endl;
+    Greetings g = hello_o->sayHello("hi");
+    cout << "got back: " << endl;
+    cout << g.language << " " << g.text
+	 << " " << get_enum_value_string(g.color)
+	 << endl;
   }
 
 #if 0
@@ -24,5 +28,5 @@ int main() {
   hello_o->register_hello_cb(hellocb_ptr);
   cout << "got back: " << hello_o->sayHello() << endl;
   cout << "got back: " << hello_p->sayAloha("hawaii") << endl;
-  #endif
+#endif
 }

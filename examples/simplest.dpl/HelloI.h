@@ -13,7 +13,7 @@ private:
   //vector<HelloCBPtr> cbs;
   
 public:
-  string sayHello() override;
+  Greetings sayHello(string weSay) override;
   //string sayAloha(const string& language) override;
   //string get_holidays() override;
   //void register_hello_cb(const HelloCBPtr&) override;
