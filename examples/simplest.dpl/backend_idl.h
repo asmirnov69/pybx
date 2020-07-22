@@ -59,11 +59,14 @@ template <> inline StructDescriptor get_struct_descriptor<Greetings>()
   return sd;
 }
 
-class HelloPtr;
+class HelloPtrImpl;
+typedef shared_ptr<HelloPtrImpl> HelloPtr;
 class Hello : public Dipole::Object {
 public:
   typedef HelloPtr ptr;
+  typedef HelloPtrImpl ptr_impl;
   virtual Greetings sayHello(string weSay) = 0;
+  //virtual void register_hello_cb(HelloCBPtr cb) = 0;
 };
 
 // Hello::sayHello(self, weSay: str) -> Greetings
@@ -138,13 +141,29 @@ get_struct_descriptor<Dipole::Response<Hello__sayHello::return_t>>()
 }
 
 // ptr
-class HelloPtr : public Dipole::ObjectPtr
+class HelloPtrImpl
 {
 private:
   Dipole::Communicator* comm;
+  shared_ptr<ix::WebSocket> ws;
+  string object_id;
+  string ws_url;
   
 public:
-  HelloPtr(Dipole::Communicator* comm) { this->comm = comm; }
+  HelloPtrImpl(Dipole::Communicator* comm, shared_ptr<ix::WebSocket> ws,
+	       const string& ws_url, const string& object_id)
+  {
+    this->comm = comm;
+    this->ws = ws;
+    this->ws_url = ws_url;
+    this->object_id = object_id;
+  }
+  HelloPtrImpl(Dipole::Communicator* comm, const string& object_id)
+  {
+    this->comm = comm;
+    this->object_id = object_id;
+  }
+  
   Greetings sayHello(string weSay) {
     Dipole::Request<Hello__sayHello::args_t> req{
       .message_type = Dipole::message_type_t::METHOD_CALL,
@@ -162,38 +181,27 @@ public:
     string res_s = comm->wait_for_response(req.message_id);
     auto res_message_type = Dipole::get_message_type(res_s);
     switch (res_message_type) {
-      case Dipole::message_type_t::METHOD_CALL_RETURN:
-	{
-	  Dipole::Response<Hello__sayHello::return_t> res;
-	  from_json(&res, res_s);
-	  ret = res.retval.retval;
-	}
-	break;
-	case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
-	  {
-	    Dipole::ExceptionResponse eres;
-	    from_json(&eres, res_s);
-	    throw Dipole::RemoteException(eres.remote_exception_text);
-	  }
-	  break;
-	  case Dipole::message_type_t::METHOD_CALL:
-	    throw runtime_error("HelloPtr::sayHello: unexcepted message type");
-	    break;
+    case Dipole::message_type_t::METHOD_CALL_RETURN:
+      {
+	Dipole::Response<Hello__sayHello::return_t> res;
+	from_json(&res, res_s);
+	ret = res.retval.retval;
+      }
+      break;
+    case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
+      {
+	Dipole::ExceptionResponse eres;
+	from_json(&eres, res_s);
+	throw Dipole::RemoteException(eres.remote_exception_text);
+      }
+      break;
+    case Dipole::message_type_t::METHOD_CALL:
+      throw runtime_error("HelloPtr::sayHello: unexcepted message type");
+      break;
     }
     return ret;
   }
 };
-
-template<> inline
-shared_ptr<HelloPtr>
-Dipole::ptr_cast(Communicator* comm, ObjectPtr o_ptr)
-{
-  auto ret = make_shared<HelloPtr>(comm);
-  ret->ws_url = o_ptr.ws_url;
-  ret->object_id = o_ptr.object_id;
-  ret->ws = o_ptr.ws;
-  return ret;
-}
 
 // register all methods
 

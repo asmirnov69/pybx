@@ -7,6 +7,7 @@ using namespace std;
 #include <libdipole/communicator.h>
 #include <libdipole/proto.h>
 #include <libdipole/remote-methods.h>
+#include <kvan/uuid.h>
 
 Dipole::Object::~Object()
 {
@@ -22,8 +23,10 @@ void Dipole::Communicator::set_listen_port(int listen_port)
   this->listen_port = listen_port;
 }
 
-string Dipole::Communicator::add_object(shared_ptr<Object> o, const string& object_id)
+string Dipole::Communicator::add_object(shared_ptr<Object> o,
+					const string& object_id_)
 {
+  string object_id = object_id_ == "" ? uuid::generate_uuid_v4() : object_id_;
   auto it = objects.find(object_id);
   if (it != objects.end()) {
     ostringstream m;
@@ -46,15 +49,8 @@ Dipole::Communicator::find_object(const string& object_id)
   return (*it).second;
 }
     
-Dipole::ObjectPtr Dipole::Communicator::get_object_ptr(const string& object_id)
-{
-  ObjectPtr ret;
-  //ret.ws_url = ...;
-  ret.object_id = object_id;
-  return ret;
-}
-
-Dipole::ObjectPtr Dipole::Communicator::connect(const string& ws_url, const string& object_id)
+shared_ptr<ix::WebSocket>
+Dipole::Communicator::connect(const string& ws_url, const string& object_id)
 {
   auto webSocket = make_shared<ix::WebSocket>();
   webSocket->setUrl(ws_url);
@@ -74,11 +70,7 @@ Dipole::ObjectPtr Dipole::Communicator::connect(const string& ws_url, const stri
     sleep(2);
   }
 
-  ObjectPtr ret;
-  ret.ws = webSocket;
-  ret.ws_url = ws_url;
-  ret.object_id = object_id;
-  return ret;
+  return webSocket;
 }
 
 void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& msg)

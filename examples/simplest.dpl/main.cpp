@@ -12,8 +12,7 @@ int main()
   comm.set_listen_port(port);
   
   shared_ptr<Hello> hello_o = make_shared<HelloI>();
-  comm.add_object(hello_o, "hello");
-  auto hello_o_ptr = comm.get_object_ptr("hello");
+  auto hello_ptr = comm.add_object<Hello>(hello_o, "hello");
   
   cout << "server start" << endl;
   comm.run();

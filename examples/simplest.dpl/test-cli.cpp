@@ -6,28 +6,34 @@ using namespace std;
 
 int main() {
   Dipole::Communicator comm;
-  Dipole::ObjectPtr ptr = comm.connect("ws://localhost:8080/", "hello");
-  shared_ptr<HelloPtr> hello_o = Dipole::ptr_cast<HelloPtr>(&comm, ptr);
+  HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
+
   cout << "start" << endl;
   for (int i = 0; i < 5; i++) {
-    Greetings g = hello_o->sayHello("hi");
+    Greetings g = hello_ptr->sayHello("hi");
     cout << "got back: " << endl;
     cout << g.language << " " << g.text
 	 << " " << get_enum_value_string(g.color)
 	 << endl;
   }
-      hello_o->sayHello("HI");
-      
+  
+  try {
+    hello_ptr->sayHello("HI");
+  } catch (Dipole::RemoteException& rex) {
+    cout << "remote exception caught: " << rex.what() << endl;
+  }
+
 #if 0
-  cout << "got back: " << hello_o->sayAloha("hawaii") << endl;
-
   auto hellocb_o = make_shared<HelloCBImpl>();
-  string hellocb_o_id = comm.add_object(hellocb_o);
-  Dipole::ObjPtr hellocb_o_ptr = communicator.get_object_ptr(hellocb_o_id);
-  HelloCBPtr hellocb_ptr = Dipole::ptr_cast<HelloCB>(hellocb_o_ptr);
-
-  hello_o->register_hello_cb(hellocb_ptr);
-  cout << "got back: " << hello_o->sayHello() << endl;
-  cout << "got back: " << hello_p->sayAloha("hawaii") << endl;
+  HelloCBPtr hellocb_ptr = comm.add_object(hellocb_o);
+  hello_ptr->register_hello_cb(hellocb_ptr);
 #endif
+
+  Greetings gg = hello_ptr->sayHello("hi");
+  cout << "got back: " << endl;
+  cout << gg.language << " " << gg.text
+	 << " " << get_enum_value_string(gg.color)
+	 << endl;
+  
+  return 0;
 }

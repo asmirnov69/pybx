@@ -18,14 +18,6 @@ namespace Dipole {
     virtual ~Object() = 0;
   };
 
-  class ObjectPtr
-  {
-  public:
-    string ws_url;
-    string object_id;
-    shared_ptr<ix::WebSocket> ws;
-  };
-
   class RemoteException : public runtime_error
   {
   public:
@@ -47,22 +39,34 @@ namespace Dipole {
     void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
     void dispatch_method_call_return(const string& msg);
     void dispatch_method_call_exception(const string& msg);
+
+    shared_ptr<ix::WebSocket> connect(const string& ws_url, const string& object_id);
+    string add_object(shared_ptr<Object>, const string& object_id);
     
   public:
     explicit Communicator();
     void set_listen_port(int listen_port);
-    string add_object(shared_ptr<Object>, const string& object_id);
-    ObjectPtr get_object_ptr(const string& object_id);
     void run();
-
-    ObjectPtr connect(const string& ws_url, const string& obj_id);
 
     shared_ptr<Object> find_object(const string& object_id);
     string wait_for_response(const string& message_id);
     void signal_response(const string& message_id, const string& msg);
-  };
 
-  template <class O_ptr> shared_ptr<O_ptr> ptr_cast(Communicator*, ObjectPtr);
+    template <class OBJ_T>
+    typename OBJ_T::ptr get_ptr(const string& ws_url, const string& object_id) {
+      auto ws = this->connect(ws_url, object_id);
+      return make_shared<typename OBJ_T::ptr_impl>(this, ws, ws_url, object_id);
+    }
+
+    template <class OBJ_T>
+    typename OBJ_T::ptr
+    add_object(shared_ptr<Object> o, const string& object_id)
+    {
+      string real_object_id = this->add_object(o, object_id);
+      typename OBJ_T::ptr ret = make_shared<typename OBJ_T::ptr_impl>(this, real_object_id);
+      return ret;
+    }
+  };
 };
 
 #endif

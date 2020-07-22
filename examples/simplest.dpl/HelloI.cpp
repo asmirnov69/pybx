@@ -5,9 +5,7 @@ string HelloCBI::confirmHello(const string& hello)
 {
   return string("confirmed: ") + hello;
 }
-#endif
 
-#if 0
 void HelloI::register_hello_cb(const HelloCBPtr& cb_ptr)
 {
   cbs.push_back(cb_ptr);
@@ -18,6 +16,7 @@ Greetings HelloI::sayHello(string weSay) {
   //for (auto& cb: cbs) {
   //  cb.confirmHello("Hello");
   //}
+  
   if (weSay != "hi") {
     ostringstream m;
     m << "unexpected weSay value: " << weSay;
