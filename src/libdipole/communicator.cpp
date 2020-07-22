@@ -4,10 +4,11 @@ using namespace std;
 
 #include <unistd.h> // sleep
 
+#include <kvan/uuid.h>
+#include <kvan/json-io.h>
 #include <libdipole/communicator.h>
 #include <libdipole/proto.h>
 #include <libdipole/remote-methods.h>
-#include <kvan/uuid.h>
 
 Dipole::Object::~Object()
 {
@@ -75,15 +76,14 @@ Dipole::Communicator::connect(const string& ws_url, const string& object_id)
 
 void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& msg)
 {
-  switch (get_message_type(msg)) {
+  auto msg_type = get_message_type(msg);
+  switch (msg_type) {
   case message_type_t::METHOD_CALL:
     dispatch_method_call(ws, msg);
     break;
   case message_type_t::METHOD_CALL_RETURN:
-    dispatch_method_call_return(msg);
-    break;
   case message_type_t::METHOD_CALL_EXCEPTION:
-    dispatch_method_call_exception(msg);
+    dispatch_response(msg_type, msg);
     break;
   }
 }
@@ -99,19 +99,15 @@ void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket>  ws,
   ws->sendBinary(res_msg);
 }
 
-void Dipole::Communicator::dispatch_method_call_return(const string& msg)
+void Dipole::Communicator::dispatch_response(message_type_t msg_type,
+					     const string& msg)
 {
   auto orig_message_id = get_orig_message_id(msg);
-  this->signal_response(orig_message_id, msg);
+  this->signal_response(orig_message_id, msg_type, msg);
 }
 
-void Dipole::Communicator::dispatch_method_call_exception(const string& msg)
-{
-  auto orig_message_id = get_orig_message_id(msg);
-  this->signal_response(orig_message_id, msg);
-} 
-
-string Dipole::Communicator::wait_for_response(const string& message_id)
+pair<Dipole::message_type_t, string>
+Dipole::Communicator::wait_for_response(const string& message_id)
 {
   auto it = waiters.find(message_id);
   if (it != waiters.end()) {
@@ -120,12 +116,15 @@ string Dipole::Communicator::wait_for_response(const string& message_id)
     throw runtime_error(m.str());
   }
   waiters[message_id] = Waiter();
-  string ret; waiters[message_id].blocking_get(&ret);
+  pair<message_type_t, string> ret;
+  waiters[message_id].blocking_get(&ret);
   waiters.erase(message_id);
   return ret;
 }
 
-void Dipole::Communicator::signal_response(const string& message_id, const string& msg)
+void Dipole::Communicator::signal_response(const string& message_id,
+					   message_type_t msg_type,
+					   const string& msg)
 {
   auto it = waiters.find(message_id);
   if (it == waiters.end()) {
@@ -133,7 +132,26 @@ void Dipole::Communicator::signal_response(const string& message_id, const strin
     m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
     throw runtime_error(m.str());
   }
-  (*it).second.blocking_put(msg);
+  (*it).second.blocking_put(make_pair(msg_type, msg));
+}
+
+void Dipole::Communicator::check_response(message_type_t msg_type,
+					  const string& msg)
+{
+  switch (msg_type) {
+  case Dipole::message_type_t::METHOD_CALL_RETURN:
+    break;
+  case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
+    {
+      Dipole::ExceptionResponse eres;
+      from_json(&eres, msg);
+      throw Dipole::RemoteException(eres.remote_exception_text);
+    }
+    break;
+  case Dipole::message_type_t::METHOD_CALL:
+    throw runtime_error("HelloPtr::sayHello: unexcepted message type");
+    break;
+  }
 }
 
 void Dipole::Communicator::run()

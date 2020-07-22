@@ -178,27 +178,12 @@ public:
     ostringstream json_os;
     to_json(json_os, req);
     ws->sendBinary(json_os.str());
-    string res_s = comm->wait_for_response(req.message_id);
-    auto res_message_type = Dipole::get_message_type(res_s);
-    switch (res_message_type) {
-    case Dipole::message_type_t::METHOD_CALL_RETURN:
-      {
-	Dipole::Response<Hello__sayHello::return_t> res;
-	from_json(&res, res_s);
-	ret = res.retval.retval;
-      }
-      break;
-    case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
-      {
-	Dipole::ExceptionResponse eres;
-	from_json(&eres, res_s);
-	throw Dipole::RemoteException(eres.remote_exception_text);
-      }
-      break;
-    case Dipole::message_type_t::METHOD_CALL:
-      throw runtime_error("HelloPtr::sayHello: unexcepted message type");
-      break;
-    }
+    auto res_s = comm->wait_for_response(req.message_id);
+    comm->check_response(res_s.first, res_s.second);
+    
+    Dipole::Response<Hello__sayHello::return_t> res;
+    from_json(&res, res_s.second);
+    ret = res.retval.retval;
     return ret;
   }
 };

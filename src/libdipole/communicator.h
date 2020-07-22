@@ -9,6 +9,7 @@ using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <kvan/cbq.h>
+#include <libdipole/proto.h>
 
 namespace Dipole {
 
@@ -32,13 +33,12 @@ namespace Dipole {
     int listen_port{-1};
     map<string, shared_ptr<Object>> objects; // object_id -> object
     
-    typedef CBQ<string, 1> Waiter;
+    typedef CBQ<pair<message_type_t, string>, 1> Waiter;
     map<string, Waiter> waiters; // message_id -> waiter
 
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
-    void dispatch_method_call_return(const string& msg);
-    void dispatch_method_call_exception(const string& msg);
+    void dispatch_response(message_type_t msg_type, const string& msg);
 
     shared_ptr<ix::WebSocket> connect(const string& ws_url, const string& object_id);
     string add_object(shared_ptr<Object>, const string& object_id);
@@ -49,9 +49,11 @@ namespace Dipole {
     void run();
 
     shared_ptr<Object> find_object(const string& object_id);
-    string wait_for_response(const string& message_id);
-    void signal_response(const string& message_id, const string& msg);
-
+    pair<Dipole::message_type_t, string> wait_for_response(const string& message_id);
+    void signal_response(const string& message_id, message_type_t msg_type,
+			 const string& msg);
+    void check_response(message_type_t msg_type, const string& msg);
+    
     template <class OBJ_T>
     typename OBJ_T::ptr get_ptr(const string& ws_url, const string& object_id) {
       auto ws = this->connect(ws_url, object_id);
