@@ -10,15 +10,24 @@ using namespace std;
 #include <libdipole/proto.h>
 #include <libdipole/remote-methods.h>
 
+void Dipole::ws_send(shared_ptr<ix::WebSocket> ws, const string& msg)
+{
+  auto send_ret = ws->sendBinary(msg);
+  if (send_ret.success == false) {
+    cout << "send failed: " << ws << endl;
+    throw runtime_error("Dipole::ws_send: send failed");
+  }
+}
+
 Dipole::Object::~Object()
 {
 }
 
-Dipole::Communicator* Dipole::Communicator::comm{nullptr};
-
 Dipole::Communicator::Communicator()
 {
   RemoteMethods::set_communicator(this);
+  w[0] = move(thread(bind(&Communicator::do_dispath_method_call_thread, this)));
+  w[1] = move(thread(bind(&Communicator::do_dispath_method_call_thread, this)));
 }
 
 void Dipole::Communicator::set_listen_port(int listen_port)
@@ -29,6 +38,7 @@ void Dipole::Communicator::set_listen_port(int listen_port)
 string Dipole::Communicator::add_object(shared_ptr<Object> o,
 					const string& object_id_)
 {
+  lock_guard g(objects_lock);
   string object_id = object_id_ == "" ? uuid::generate_uuid_v4() : object_id_;
   auto it = objects.find(object_id);
   if (it != objects.end()) {
@@ -43,6 +53,7 @@ string Dipole::Communicator::add_object(shared_ptr<Object> o,
 shared_ptr<Dipole::Object>
 Dipole::Communicator::find_object(const string& object_id)
 {
+  lock_guard g(objects_lock);
   auto it = objects.find(object_id);
   if (it == objects.end()) {
     ostringstream m;
@@ -56,12 +67,14 @@ shared_ptr<ix::WebSocket>
 Dipole::Communicator::connect(const string& ws_url, const string& object_id)
 {
   auto webSocket = make_shared<ix::WebSocket>();
+  webSocket->disableAutomaticReconnection();
   webSocket->setUrl(ws_url);
   webSocket->setOnMessageCallback([this, webSocket](const ix::WebSocketMessagePtr& msg) {
       cerr << "got something" << endl;
       if (msg->type == ix::WebSocketMessageType::Message)
         {
-	  this->dispatch(webSocket, msg->str);
+	  //this->dispatch(webSocket, msg->str);
+	  workers_q.blocking_put(make_pair(webSocket, msg->str));
         }
     });
 
@@ -75,11 +88,25 @@ Dipole::Communicator::connect(const string& ws_url, const string& object_id)
   return webSocket;
 }
 
+void Dipole::Communicator::do_dispath_method_call_thread()
+{
+  while (true) {
+    try {
+      pair<shared_ptr<ix::WebSocket>, string> m;
+      cout << "Dipole::Communicator::do_dispath_method_call_thread: start waiting for new message" << endl;
+      workers_q.blocking_get(&m);
+      auto [ws, msg] = m;
+      cout << "Dipole::Communicator::do_dispath_method_call_thread: msg: " << msg << endl;
+      this->dispatch(ws, msg);
+    } catch (exception& ex) {
+      cout << "Dipole::Communicator::do_dispatch_method_call_thread caught exception" << endl;
+      cout << ex.what() << endl;
+    }
+  }
+}
+
 void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& msg)
 {
-  cout << "Dipole::Communicator::dispatch: received: " << msg << endl;
-  cout << "Dipole::Communicator::dispatch: waiters size: " << waiters.size() << endl;
-
   auto msg_type = get_message_type(msg);
   switch (msg_type) {
   case message_type_t::METHOD_CALL:
@@ -95,13 +122,12 @@ void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& 
 void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket>  ws,
 						const string& msg)
 {
-  cout << "Dipole::Communicator::dispatch_method_call: waiters: " << waiters.size() << endl;
   string method_signature = get_method_signature(msg);
   auto method_call = RemoteMethods::find_method(method_signature);
   string res_msg;
   method_call->do_call(msg, &res_msg, ws);
+  Dipole::ws_send(ws, res_msg);
   cout << "Dipole::Communicator::dispatch_method_call response: " << res_msg << endl;
-  ws->sendBinary(res_msg);
 }
 
 void Dipole::Communicator::dispatch_response(message_type_t msg_type,
@@ -114,17 +140,26 @@ void Dipole::Communicator::dispatch_response(message_type_t msg_type,
 pair<Dipole::message_type_t, string>
 Dipole::Communicator::wait_for_response(const string& message_id)
 {
-  cout << "Dipole::Communicator::wait_for_response: waiters size: " << waiters.size() << endl;
-  auto it = waiters.find(message_id);
-  if (it != waiters.end()) {
-    ostringstream m;
-    m << "Dipole::Communicator::wait_for_response: message_id is already waited for: " << message_id;
-    throw runtime_error(m.str());
+  shared_ptr<Waiter> w;
+  {
+    lock_guard g(waiters_lock);
+    auto it = waiters.find(message_id);
+    if (it != waiters.end()) {
+      ostringstream m;
+      m << "Dipole::Communicator::wait_for_response: message_id is already waited for: " << message_id;
+      throw runtime_error(m.str());
+    }
+    w = waiters[message_id] = make_shared<Waiter>();
   }
-  waiters[message_id] = make_shared<Waiter>();
+
   pair<message_type_t, string> ret;
-  waiters[message_id]->blocking_get(&ret);
-  waiters.erase(message_id);
+  w->blocking_get(&ret);
+
+  {
+    lock_guard g(waiters_lock);
+    waiters.erase(message_id);
+  }
+  
   return ret;
 }
 
@@ -132,14 +167,18 @@ void Dipole::Communicator::signal_response(const string& message_id,
 					   message_type_t msg_type,
 					   const string& msg)
 {
-  cout << "Dipole::Communicator::signal_response: waiters size: " << waiters.size() << endl;
-  auto it = waiters.find(message_id);
-  if (it == waiters.end()) {
-    ostringstream m;
-    m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
-    throw runtime_error(m.str());
+  shared_ptr<Waiter> w;
+  {
+    lock_guard g(waiters_lock);  
+    auto it = waiters.find(message_id);
+    if (it == waiters.end()) {
+      ostringstream m;
+      m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
+      throw runtime_error(m.str());
+    }
+    w = (*it).second;
   }
-  (*it).second->blocking_put(make_pair(msg_type, msg));
+  w->blocking_put(make_pair(msg_type, msg));
 }
 
 void Dipole::Communicator::check_response(message_type_t msg_type,
@@ -168,6 +207,7 @@ void Dipole::Communicator::run()
 				 (std::shared_ptr<ix::WebSocket> webSocket,
 				  std::shared_ptr<ix::ConnectionState> connectionState) {
 				   //std::cout << "Remote ip: " << connectionInfo->remoteIp << std::endl;
+				   webSocket->disableAutomaticReconnection();
 				   webSocket->setOnMessageCallback([webSocket, connectionState, &server, this](const ix::WebSocketMessagePtr& msg) {
 				       if (msg->type == ix::WebSocketMessageType::Open) {
 					 std::cout << "New connection" << std::endl;
@@ -187,7 +227,8 @@ void Dipole::Communicator::run()
 					 }
 				       } else if (msg->type == ix::WebSocketMessageType::Message) {
 					 string res_s;
-					 this->dispatch(webSocket, msg->str);
+					 //this->dispatch(webSocket, msg->str);
+					 workers_q.blocking_put(make_pair(webSocket, msg->str));
 				       } else if (msg->type == ix::WebSocketMessageType::Close) {
 					 cout << "connection closed" << endl;
 				       } else {

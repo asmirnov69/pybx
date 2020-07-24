@@ -9,7 +9,6 @@ int main()
 {
   int port = 8080;
   Dipole::Communicator comm;
-  Dipole::Communicator::comm = &comm;
   comm.set_listen_port(port);
   
   shared_ptr<Hello> hello_o = make_shared<HelloI>();

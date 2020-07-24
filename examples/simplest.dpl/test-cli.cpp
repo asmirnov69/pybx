@@ -8,7 +8,6 @@ using namespace std;
 
 ADD_ACTION("test_call[]", [](const Fuargs::args&) {
     Dipole::Communicator comm;
-    Dipole::Communicator::comm = &comm;
     HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
     
     cout << "start" << endl;
@@ -31,7 +30,6 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
 
 ADD_ACTION("test_cb[]", [](const Fuargs::args&) {
     Dipole::Communicator comm;
-    Dipole::Communicator::comm = &comm;
     HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
 
     auto hellocb_o = make_shared<HelloCBI>();

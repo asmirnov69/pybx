@@ -92,7 +92,7 @@ StructDescriptor get_struct_descriptor<HelloPtr>()
 
 class HelloCBPtr
 {
-private:
+public:
   Dipole::Communicator* comm{nullptr};
   shared_ptr<ix::WebSocket> ws;
   
@@ -303,7 +303,7 @@ inline Greetings HelloPtr::sayHello(string weSay)
   
   ostringstream json_os;
   to_json(json_os, req);
-  ws->sendBinary(json_os.str());
+  Dipole::ws_send(ws, json_os.str());
   cout << "HelloPtr::sayHello: msg send: " << json_os.str() << endl;
   auto res_s = comm->wait_for_response(req.message_id);
   comm->check_response(res_s.first, res_s.second);
@@ -328,7 +328,7 @@ inline string HelloPtr::register_hello_cb(HelloCBPtr cb)
   
   ostringstream json_os;
   to_json(json_os, req);
-  ws->sendBinary(json_os.str());
+  Dipole::ws_send(ws, json_os.str());
   cout << "HelloPtr::register_hello_cb: msg sent: " << json_os.str() << endl;
   auto res_s = comm->wait_for_response(req.message_id);
   comm->check_response(res_s.first, res_s.second);
@@ -362,8 +362,10 @@ struct HelloCB__confirmHello : public Dipole::method_impl
   {
     Dipole::Request<args_t> req;
     from_json(&req, req_s);
-    
+
+    cout << "confirmHello: find object " << req.object_id << endl;
     auto o = comm->find_object(req.object_id);
+    cout << "confirmHello: DONE find object " << req.object_id << endl;
     ostringstream res_os;
     if (auto self = dynamic_pointer_cast<HelloCB>(o);
 	self != nullptr) {
@@ -456,7 +458,6 @@ inline void HelloCBPtr::activate(Dipole::Communicator* c,
 
 inline string HelloCBPtr::confirmHello(string hello)
 {
-  cout << "HelloCBPtr::confirmHello: waiters: " << comm->waiters.size() << endl;
   Dipole::Request<HelloCB__confirmHello::args_t> req{
     .message_type = Dipole::message_type_t::METHOD_CALL,
       .message_id = Dipole::create_new_message_id(),
@@ -470,14 +471,10 @@ inline string HelloCBPtr::confirmHello(string hello)
   ostringstream json_os;
   to_json(json_os, req);  
   cout << "HelloCBPtr::confirmHello: " << json_os.str() << endl;
-  cout << "HelloCBPtr::confirmHello: waiters0: " << comm->waiters.size() << endl;
-  ws->sendBinary(json_os.str());
+  Dipole::ws_send(ws, json_os.str());
   cout << "HelloCBPtr::confirmHello: msg sent: " << json_os.str() << endl;
-  cout << "HelloCBPtr::confirmHello: waiters1: " << comm->waiters.size() << endl;
   auto res_s = comm->wait_for_response(req.message_id);
-  cout << "HelloCBPtr::confirmHello: waiters2: " << comm->waiters.size() << endl;
   comm->check_response(res_s.first, res_s.second);
-  cout << "HelloCBPtr::confirmHello: waiters3: " << comm->waiters.size() << endl;
   
   Dipole::Response<HelloCB__confirmHello::return_t> res;
   from_json(&res, res_s.second);

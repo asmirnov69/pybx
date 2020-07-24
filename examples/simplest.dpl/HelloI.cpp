@@ -14,10 +14,13 @@ string HelloI::register_hello_cb(HelloCBPtr cb_ptr)
 
 Greetings HelloI::sayHello(string weSay) {
   cout << "HelloI::sayHello, size of cbs: " << cbs.size() << endl;
-  cout << "HelloI::sayHello, waiters: ";
-  Dipole::Communicator::debug_dump(); cout << endl;
   for (auto& cb: cbs) {
-    cb.confirmHello("Hello");
+    cout << cb.ws << endl;
+    try {
+      cb.confirmHello("Hello");
+    } catch (runtime_error& ex) {
+      cout << "ignore bad socket" << endl;
+    }
   }
   
   if (weSay != "hi") {

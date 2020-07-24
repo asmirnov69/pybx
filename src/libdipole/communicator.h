@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <memory>
+#include <thread>
 using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
@@ -13,6 +14,8 @@ using namespace std;
 
 namespace Dipole {
 
+  void ws_send(shared_ptr<ix::WebSocket>, const string& msg);
+  
   class Object
   {
   public:
@@ -29,25 +32,27 @@ namespace Dipole {
 
   class Communicator
   {
-  public:
+  private:
     int listen_port{-1};
+
+    mutex objects_lock;
     map<string, shared_ptr<Object>> objects; // object_id -> object
-    
+
+    mutex waiters_lock;
     typedef CBQ<pair<message_type_t, string>, 1> Waiter;
     map<string, shared_ptr<Waiter>> waiters; // message_id -> waiter
 
+    CBQ<pair<shared_ptr<ix::WebSocket>, string>, 8> workers_q;    
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
-    void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
+    void dispatch_method_call(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_response(message_type_t msg_type, const string& msg);
+    void do_dispath_method_call_thread();
+    thread w[2];
 
     shared_ptr<ix::WebSocket> connect(const string& ws_url, const string& object_id);
     string add_object(shared_ptr<Object>, const string& object_id);
     
   public:
-    static Communicator* comm;
-    static void set_comminicator(Communicator* c) { comm = c; }
-    static void debug_dump() { cout << "Communicator::debug_dump: waiters: " << comm->waiters.size() << endl; }
-      
     explicit Communicator();
     void set_listen_port(int listen_port);
     void run();
