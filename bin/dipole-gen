@@ -1,0 +1,44 @@
+#!/usr/local/anaconda3/bin/python
+
+import sys
+from KVAN import fuargs, topdir
+topdir.setup_syspath()
+import ast
+import codegen, codegen_cpp
+
+@fuargs.action
+def ast_dump(fn):
+    source_code = "\n".join(open(fn).readlines())
+    pt = ast.parse(source_code)
+    print(ast.dump(pt))
+
+@fuargs.action
+def verify(fn):
+    import types
+    import importlib.machinery
+    loader = importlib.machinery.SourceFileLoader('a_b', fn)
+    mod = types.ModuleType(loader.name)
+    loader.exec_module(mod)
+    print(mod)
+    
+@fuargs.action
+def gen_cpp(fn):
+    module_def = codegen.parse_file(fn)
+    print("enums:", [x.name for x in module_def.enums])
+    print("structs:", [x.name for x in module_def.structs])
+    print("interfaces:", [x.name for x in module_def.interfaces])
+    print("typedefs:", [x.name for x in module_def.typedefs])
+
+    out_fn = None
+    if isinstance(out_fn, str):
+        print("out file:", fn)
+        out_fd = open(fn, "w")
+    else:
+        out_fd = sys.stdout
+
+    codegen_cpp.generate_cpp_file(module_def, out_fd)
+    return 0    
+
+if __name__ == "__main__":
+    fuargs.exec_actions(sys.argv[1:])
+    
