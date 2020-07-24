@@ -21,7 +21,7 @@ class Greetings(struct):
 
 class Hello:
     def sayHello(self, weSay: str) -> Greetings: []
-    def register_hello_cb(self, cb: HelloCBPtr) -> None: []
+    def register_hello_cb(self, cb: HelloCBPtr) -> str: []
    
 class HelloCB:
     def confirmHello(self, hello: str) -> str: []

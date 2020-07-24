@@ -1,39 +1,54 @@
 #include <iostream>
 using namespace std;
 
+#include <kvan/fuargs.h>
 #include <libdipole/communicator.h>
 #include "backend_idl.h"
+#include "HelloI.h"
 
-int main() {
-  Dipole::Communicator comm;
-  HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
+ADD_ACTION("test_call[]", [](const Fuargs::args&) {
+    Dipole::Communicator comm;
+    Dipole::Communicator::comm = &comm;
+    HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
+    
+    cout << "start" << endl;
+    for (int i = 0; i < 5; i++) {
+      Greetings g = hello_ptr.sayHello("hi");
+      cout << "got back: " << endl;
+      cout << g.language << " " << g.text
+	   << " " << get_enum_value_string(g.color)
+	   << endl;
+    }
+    
+    try {
+      Greetings gg = hello_ptr.sayHello("HI");
+    } catch (Dipole::RemoteException& rex) {
+      cout << "remote exception caught: " << rex.what() << endl;
+    }
 
-  cout << "start" << endl;
-  for (int i = 0; i < 5; i++) {
-    Greetings g = hello_ptr->sayHello("hi");
+    return true;
+  });
+
+ADD_ACTION("test_cb[]", [](const Fuargs::args&) {
+    Dipole::Communicator comm;
+    Dipole::Communicator::comm = &comm;
+    HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
+
+    auto hellocb_o = make_shared<HelloCBI>();
+    HelloCBPtr hellocb_ptr = comm.add_object<HelloCB>(hellocb_o);
+    hello_ptr.register_hello_cb(hellocb_ptr);
+
+    Greetings gg = hello_ptr.sayHello("hi");
     cout << "got back: " << endl;
-    cout << g.language << " " << g.text
-	 << " " << get_enum_value_string(g.color)
-	 << endl;
-  }
-  
-  try {
-    hello_ptr->sayHello("HI");
-  } catch (Dipole::RemoteException& rex) {
-    cout << "remote exception caught: " << rex.what() << endl;
-  }
-
-#if 0
-  auto hellocb_o = make_shared<HelloCBImpl>();
-  HelloCBPtr hellocb_ptr = comm.add_object(hellocb_o);
-  hello_ptr->register_hello_cb(hellocb_ptr);
-#endif
-
-  Greetings gg = hello_ptr->sayHello("hi");
-  cout << "got back: " << endl;
-  cout << gg.language << " " << gg.text
+    cout << gg.language << " " << gg.text
 	 << " " << get_enum_value_string(gg.color)
 	 << endl;
-  
-  return 0;
+    
+    return true;
+  });
+
+int main(int argc, char** argv)
+{
+  Fuargs::exec_actions(argc, argv);
 }
+

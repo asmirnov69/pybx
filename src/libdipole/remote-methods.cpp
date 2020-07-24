@@ -26,7 +26,7 @@ Dipole::RemoteMethods::find_method(const string& method_signature)
   return (*it).second;
 }
 
-void Dipole::RemoteMethods::set_comminicator(Communicator* comm)
+void Dipole::RemoteMethods::set_communicator(Communicator* comm)
 {
   for (auto it = remote_methods.begin(); it != remote_methods.end(); ++it) {
     (*it).second->comm = comm;

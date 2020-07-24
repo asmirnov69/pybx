@@ -1,21 +1,24 @@
 #include "HelloI.h"
 
-#if 0
-string HelloCBI::confirmHello(const string& hello)
+string HelloCBI::confirmHello(string hello)
 {
+  cout << "HelloCBI::confirmHello" << endl;
   return string("confirmed: ") + hello;
 }
 
-void HelloI::register_hello_cb(const HelloCBPtr& cb_ptr)
+string HelloI::register_hello_cb(HelloCBPtr cb_ptr)
 {
   cbs.push_back(cb_ptr);
+  return "hkjhjhk";
 }
-#endif
 
 Greetings HelloI::sayHello(string weSay) {
-  //for (auto& cb: cbs) {
-  //  cb.confirmHello("Hello");
-  //}
+  cout << "HelloI::sayHello, size of cbs: " << cbs.size() << endl;
+  cout << "HelloI::sayHello, waiters: ";
+  Dipole::Communicator::debug_dump(); cout << endl;
+  for (auto& cb: cbs) {
+    cb.confirmHello("Hello");
+  }
   
   if (weSay != "hi") {
     ostringstream m;
@@ -29,19 +32,3 @@ Greetings HelloI::sayHello(string weSay) {
   ret.color = Color::NORMAL;
   return ret;
 }
-
-#if 0
-string HelloI::sayAloha(const string& language) {
-  string ret;
-  if (language == "hawaii") {
-    ret = "Aloha";
-  } else {
-    ret = "Privet";
-  }
-  return ret;
-}
-
-string HelloI::get_holidays() {
-  return "2020-01-01";
-}
-#endif

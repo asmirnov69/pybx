@@ -10,21 +10,17 @@ using namespace std;
 class HelloI : public Hello
 {
 private:
-  //vector<HelloCBPtr> cbs;
+  vector<HelloCBPtr> cbs;
   
 public:
   Greetings sayHello(string weSay) override;
-  //string sayAloha(const string& language) override;
-  //string get_holidays() override;
-  //void register_hello_cb(const HelloCBPtr&) override;
+  string register_hello_cb(HelloCBPtr) override;
 };
 
-#if 0
 class HelloCBI : public HelloCB
 {
 public:
-  string confirmHello(const string& hello) override;
+  string confirmHello(string hello) override;
 };
-#endif
 
 #endif

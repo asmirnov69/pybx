@@ -29,12 +29,12 @@ namespace Dipole {
 
   class Communicator
   {
-  private:
+  public:
     int listen_port{-1};
     map<string, shared_ptr<Object>> objects; // object_id -> object
     
     typedef CBQ<pair<message_type_t, string>, 1> Waiter;
-    map<string, Waiter> waiters; // message_id -> waiter
+    map<string, shared_ptr<Waiter>> waiters; // message_id -> waiter
 
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_method_call(shared_ptr<ix::WebSocket>  ws, const string& msg);
@@ -44,6 +44,10 @@ namespace Dipole {
     string add_object(shared_ptr<Object>, const string& object_id);
     
   public:
+    static Communicator* comm;
+    static void set_comminicator(Communicator* c) { comm = c; }
+    static void debug_dump() { cout << "Communicator::debug_dump: waiters: " << comm->waiters.size() << endl; }
+      
     explicit Communicator();
     void set_listen_port(int listen_port);
     void run();
@@ -55,17 +59,19 @@ namespace Dipole {
     void check_response(message_type_t msg_type, const string& msg);
     
     template <class OBJ_T>
-    typename OBJ_T::ptr get_ptr(const string& ws_url, const string& object_id) {
+    typename OBJ_T::ptr
+    get_ptr(const string& ws_url, const string& object_id) {
       auto ws = this->connect(ws_url, object_id);
-      return make_shared<typename OBJ_T::ptr_impl>(this, ws, ws_url, object_id);
+      typename OBJ_T::ptr ret(this, ws, ws_url, object_id);
+      return ret;
     }
 
     template <class OBJ_T>
     typename OBJ_T::ptr
-    add_object(shared_ptr<Object> o, const string& object_id)
+    add_object(shared_ptr<Object> o, const string& object_id = "")
     {
       string real_object_id = this->add_object(o, object_id);
-      typename OBJ_T::ptr ret = make_shared<typename OBJ_T::ptr_impl>(this, real_object_id);
+      typename OBJ_T::ptr ret(this, real_object_id);
       return ret;
     }
   };
