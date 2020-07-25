@@ -1,21 +1,13 @@
 import ipdb
-
-def get_cpp_type(py_type):
-    if py_type == 'str':
-        ret = 'std::string'
-    elif py_type == None:
-        ret = 'void'
-    else:
-        ret = py_type
-    return ret
+from codegen import *
 
 def generate_struct_def(struct_def, out_fd):
     # struct def
     print(f"struct {struct_def.name} {{", file = out_fd)
     for m_def in struct_def.members:
         #ipdb.set_trace()
-        m_cpp_type = get_cpp_type(m_def[1])
-        print(f" {m_cpp_type} {m_def[0]};", file = out_fd);
+        m_cpp_type = m_def.type.get_cpp_type()
+        print(f" {m_cpp_type} {m_def.name};", file = out_fd);
     print("};", file = out_fd)
 
     #get_struct_descriptor
@@ -23,7 +15,7 @@ def generate_struct_def(struct_def, out_fd):
     print("{", file = out_fd)
     print(" static const StructDescriptor sd = {", file = out_fd)
     for m_def in struct_def.members:
-        print(f"  make_member_descriptor(\"{m_def[0]}\", &{struct_def.name}::{m_def[0]}),", file = out_fd)
+        print(f"  make_member_descriptor(\"{m_def.name}\", &{struct_def.name}::{m_def.name}),", file = out_fd)
     print(" };", file = out_fd)
     print(" return sd;", file = out_fd)
     print("}", file = out_fd)
@@ -76,9 +68,8 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print(f"  {class_name}(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
     print(f"  {class_name}(Dipole::Communicator* comm, const std::string& object_id);", file = out_fd)
     for m_def in interface_def.methods:
-        m_cpp_ret_type = get_cpp_type(m_def.method_ret_type)
-        #ipdb.set_trace()
-        m_args = ", ".join([" ".join([get_cpp_type(x[1]), x[0]])  for x in m_def.method_args])
+        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
+        m_args = ", ".join(m_def.method_args.get_typed_args_list())
         print(f"  {m_cpp_ret_type} {m_def.method_name}({m_args});", file = out_fd)
     print("};", file = out_fd)
 
@@ -98,9 +89,8 @@ def generate_interface_server_declarations(interface_def, out_fd):
     print(f" typedef {interface_def.name}Ptr ptr;", file = out_fd)
     #ipdb.set_trace()
     for m_def in interface_def.methods:
-        m_cpp_ret_type = get_cpp_type(m_def.method_ret_type)
-        #ipdb.set_trace()
-        m_args = ", ".join([" ".join([get_cpp_type(x[1]), x[0]])  for x in m_def.method_args])
+        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
+        m_args = ", ".join(m_def.method_args.get_typed_args_list())
         print(f" virtual {m_cpp_ret_type} {m_def.method_name}({m_args}) = 0;", file = out_fd)
     print("};", file = out_fd)
 
@@ -112,11 +102,11 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"struct {method_impl_class_name} : public Dipole::method_impl", file = out_fd)
         print("{", file = out_fd)
         print(" struct args_t {", file = out_fd)
-        m_args = ";\n".join([" ".join([get_cpp_type(x[1]), x[0]])  for x in m_def.method_args])
+        m_args = ";\n".join(m_def.method_args.get_typed_args_list())
         print(f" {m_args}", file = out_fd)
         print(" };", file = out_fd)
         print(" struct return_t {", file = out_fd)
-        m_cpp_ret_type = get_cpp_type(m_def.method_ret_type)
+        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
         print(f"   {m_cpp_ret_type} retval;", file = out_fd)
         print(" };", file = out_fd)
         print(" void do_call(const std::string& req_s, std::string* res_s, std::shared_ptr<ix::WebSocket>) override;", file = out_fd)
@@ -127,8 +117,8 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"template <> inline StructDescriptor get_struct_descriptor<{method_impl_class_name}::args_t>()", file = out_fd)
         print("{", file = out_fd)
         print(" static const StructDescriptor sd = {", file = out_fd)
-        for m_arg in m_def.method_args:
-            print(f"  make_member_descriptor(\"{m_arg[0]}\", &{method_impl_class_name}::args_t::{m_arg[0]}),", file = out_fd)
+        for m_arg in m_def.method_args.args:
+            print(f"  make_member_descriptor(\"{m_arg.arg_name}\", &{method_impl_class_name}::args_t::{m_arg.arg_name}),", file = out_fd)
         print(" };", file = out_fd)
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
@@ -177,7 +167,9 @@ def generate_interface_client_definitions(interface_def, out_fd):
 def generate_interface_client_method_definition(class_name, m_def, out_fd):
     # Ptr methods
     method_impl_class_name = f"{m_def.class_def.name}__{m_def.method_name}"
-    print(f"inline {m_def.method_ret_type} {class_name}::{m_def.method_name}(...args...)", file = out_fd)
+    m_args = ", ".join(m_def.method_args.get_typed_args_list())
+    m_ret_type = m_def.method_ret_type.get_cpp_type()
+    print(f"inline {m_ret_type} {class_name}::{m_def.method_name}({m_args})", file = out_fd)
     print("{", file = out_fd)
     ptr_method_template = f"""
     Dipole::Request<{method_impl_class_name}::args_t> req{{
@@ -209,6 +201,7 @@ def generate_interface_server_method_impls(interface_def, out_fd):
         generate_interface_server_method_impl_definition(interface_def, m_def, out_fd)
     
 def generate_interface_server_method_impl_definition(interface_def, m_def, out_fd):
+    m_args = ", ".join(m_def.method_args.get_args_list())
     method_impl_do_call_tmpl = f"""
     Dipole::Request<args_t> req;
     from_json(&req, req_s);
@@ -221,7 +214,7 @@ def generate_interface_server_method_impl_definition(interface_def, m_def, out_f
 	Dipole::Response<return_t> res;
 	res.message_id = Dipole::create_new_message_id();
 	res.orig_message_id = req.message_id;
-	res.retval.retval = self->{m_def.method_name}(... args ...);
+	res.retval.retval = self->{m_def.method_name}({m_args});
 	to_json(res_os, res);
       }} catch (exception& e) {{
 	Dipole::ExceptionResponse eres;

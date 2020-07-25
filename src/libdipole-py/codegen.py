@@ -11,6 +11,19 @@ def find_import_file(import_name, pathes):
             break
     return ret
 
+class Type:
+    def __init__(self, py_type):
+        self.py_type = py_type
+        
+    def get_cpp_type(self):
+        if self.py_type == 'str':
+            ret = 'std::string'
+        elif self.py_type == None:
+            ret = 'void'
+        else:
+            ret = self.py_type
+        return ret
+
 class ModuleDef:
     def __init__(self, imports, enums, structs, typedefs, interfaces):
         self.imports = imports
@@ -43,23 +56,54 @@ class InterfaceMethodDef:
     def __init__(self, class_def, method_name):
         self.class_def = class_def
         self.method_name = method_name
-        self.method_args = []
-        self.method_ret_type = None
+        self.method_args = MethodArgs()
+        self.method_ret_type = None # Type
+
+class MethodArgs:
+    def __init__(self):
+        self.args = [] # List[MethodArg]
+
+    def add_arg(self, arg_name, arg_type):
+        self.args.append(MethodArg(arg_name, Type(arg_type)))
+        
+    def get_typed_args_list(self):
+        ret = []
+        for arg in self.args:
+            arg_type = arg.arg_type.get_cpp_type()
+            arg_name = arg.arg_name
+            ret.append(f"{arg_type} {arg_name}")
+        return ret
+
+    def get_args_list(self):
+        return [x.arg_name for x in self.args]            
+        
+class MethodArg:
+    def __init__(self, arg_name, arg_type):
+        self.arg_name = arg_name
+        self.arg_type = arg_type
         
 class TypedefDef:
-    def __init__(self, name, typedef_value):
+    def __init__(self, name, typedef_container, typedef_element_type):
         self.name = name
-        self.typedef_value = typedef_value
+        self.typedef_container = typedef_container
+        self.typedef_element_type = typedef_element_type
 
 class EnumDef:
     def __init__(self, name):
         self.name = name
         self.members = [] # name -> num value
+
+class StructMemberDef:
+    def __init__(self, name, type):
+        if not isinstance(type, Type):
+            raise Exception("StructMemberDef::__init__: type must be Type")
+        self.name = name
+        self.type = type
         
 class StructDef:
     def __init__(self, name):
         self.name = name
-        self.members = [] # name -> type
+        self.members = [] # List[StructMemberDef]
 
 def parse_dipole_interface(node):
     interface_def = None
@@ -76,10 +120,10 @@ def parse_dipole_interface(node):
                     m_def = InterfaceMethodDef(interface_def, el.name)
                     #ipdb.set_trace()
                     if isinstance(el.returns, ast.Name):
-                        m_def.method_ret_type = el.returns.id
+                        m_def.method_ret_type = Type(el.returns.id)
                     elif isinstance(el.returns, ast.NameConstant):
                         if el.returns.value == None:
-                            m_def.method_ret_type = None
+                            m_def.method_ret_type = Type(None)
                         else:
                             raise Exception("unexpected value of NameConstant")
                                 
@@ -93,7 +137,7 @@ def parse_dipole_interface(node):
                             continue
                         m_arg_name = m_arg.arg
                         m_arg_type = m_arg.annotation.id
-                        m_def.method_args.append((m_arg_name, m_arg_type))
+                        m_def.method_args.add_arg(m_arg_name, m_arg_type)
                         
                     #ipdb.set_trace()
                     interface_def.methods.append(m_def)
@@ -113,11 +157,9 @@ def parse_dipole_typedef(node):
                 typedef_target = node.targets[0].id
         if isinstance(node.value, ast.Subscript):
             if node.value.value.value.id == 'dipole_idl' and node.value.value.attr == 'ObjectPtr':
-                typedef_source = ('ObjectPtr', node.value.slice.value.id)
-                typedef_def = TypedefDef(typedef_target, typedef_source)
+                typedef_def = TypedefDef(typedef_target, 'ObjectPtr', node.value.slice.value.id)
             elif node.value.value.value.id == 'typing' and node.value.value.attr == 'List':
-                typedef_source = ('List', node.value.slice.value.id)
-                typedef_def = TypedefDef(typedef_target, typedef_source)
+                typedef_def = TypedefDef(typedef_target, 'List', node.value.slice.value.id)
             else:
                 raise Exception(f"can't process typedef at line {node.lineno}")
 
@@ -132,7 +174,7 @@ def parse_dipole_struct(node):
                 for m in node.body:
                     if not isinstance(m, ast.AnnAssign):
                         raise Exception(f"parse_dipole_struct: unexpected member at line {m.lineno}")
-                    struct_def.members.append((m.target.id, m.annotation.id))
+                    struct_def.members.append(StructMemberDef(m.target.id, Type(m.annotation.id)))
                         
     
     return struct_def
