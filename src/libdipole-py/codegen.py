@@ -1,14 +1,39 @@
-import sys
+import sys, os.path
 import ast
 from codegen_cpp import *
 
+def find_import_file(import_name, pathes):
+    ret = None
+    for p in pathes:
+        import_fn = os.path.join(p, import_name + ".py")
+        if os.path.exists(import_fn):
+            ret = import_fn
+            break
+    return ret
+
 class ModuleDef:
-    def __init__(self, enums, structs, typedefs, interfaces):
+    def __init__(self, imports, enums, structs, typedefs, interfaces):
+        self.imports = imports
         self.enums = enums
         self.structs = structs
         self.typedefs = typedefs
         self.interfaces = interfaces
 
+    def merge(self, o_mod_def):
+        self.imports.extend(o_mod_def.imports)
+        self.enums.extend(o_mod_def.enums)
+        self.structs.extend(o_mod_def.structs)
+        self.typedefs.extend(o_mod_def.typedefs)
+        self.interfaces.extend(o_mod_def.interfaces)
+
+    def dump(self):
+        print("imports: ", [x for x in self.imports])
+        print("enums:", [x.name for x in self.enums])
+        print("structs:", [x.name for x in self.structs])
+        print("interfaces:", [x.name for x in self.interfaces])
+        print("typedefs:", [x.name for x in self.typedefs])
+
+        
 class InterfaceDef:
     def __init__(self, name):
         self.name = name
@@ -133,7 +158,7 @@ def parse_dipole_enumdef(node):
     
     return enumdef_def
 
-def parse_file(pyidl_fn):
+def parse_module(pyidl_fn):
     source_code = "\n".join(open(pyidl_fn).readlines())
 
     #print source_code[:100]
@@ -146,6 +171,7 @@ def parse_file(pyidl_fn):
     enum_defs = []
     struct_defs = []
     interface_defs = []
+    import_defs = []
     if not isinstance(pt, ast.Module):
         raise Exception("top node in parsed tree expected to be Module")
     
@@ -157,11 +183,12 @@ def parse_file(pyidl_fn):
         if isinstance(node, ast.ImportFrom):
             if node.module.find("_idl") != -1:
                 print("PYIDL module from import found: ", node.module)
+                import_defs.append(node.module)
+                
         if isinstance(node, ast.Import):
             for n in node.names:
                 if n.name.find("_idl") != -1:
                     if n.name != 'dipole_idl':
-                        print("PYIDL module import found: ", n.name)
                         raise Exception(f"'import {n.name}' is not supported, use 'from {n.name} import *' instead")
         
         interface_def = parse_dipole_interface(node)
@@ -186,4 +213,4 @@ def parse_file(pyidl_fn):
 
     #ipdb.set_trace()
     #print("walk is done")
-    return ModuleDef(enum_defs, struct_defs, typedef_defs, interface_defs)
+    return ModuleDef(import_defs, enum_defs, struct_defs, typedef_defs, interface_defs)

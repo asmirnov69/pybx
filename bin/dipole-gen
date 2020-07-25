@@ -37,21 +37,33 @@ def verify2(fn):
     
 @fuargs.action
 def gen_cpp(fn):
-    module_def = codegen.parse_file(fn)
-    print("enums:", [x.name for x in module_def.enums])
-    print("structs:", [x.name for x in module_def.structs])
-    print("interfaces:", [x.name for x in module_def.interfaces])
-    print("typedefs:", [x.name for x in module_def.typedefs])
-
     out_fn = None
-    if isinstance(out_fn, str):
-        print("out file:", fn)
-        out_fd = open(fn, "w")
-    else:
-        out_fd = sys.stdout
+    out_fd = open(fn, "w") if isinstance(out_fn, str) else sys.stdout
 
-    codegen_cpp.generate_cpp_file(module_def, out_fd)
-    return 0    
+    module_defs = codegen.parse_module(fn)
+    module_defs.dump()
+    
+    nested_modules = module_defs.imports
+    processed_modules = set()
+    mod_search_pathes = [os.path.dirname(fn)]
+    while True:
+        if len(nested_modules) == 0:
+            break
+        import_name = nested_modules[0]; nested_modules = nested_modules[1:]
+        if import_name in processed_modules:
+            continue
+        print("processing import", import_name)
+        import_fn = codegen.find_import_file(import_name, mod_search_pathes)
+        if import_fn == None:
+            raise Exception(f"can't find file for import module {import_name}")
+        new_module_defs = codegen.parse_module(import_fn)
+        new_module_defs.dump()
+        module_defs.merge(new_module_defs)
+        nested_modules.extend(new_module_defs.imports)
+        processed_modules.add(import_name)
+        
+    codegen_cpp.generate_cpp_file(module_defs, out_fd)
+    return 0
 
 if __name__ == "__main__":
     fuargs.exec_actions(sys.argv[1:])
