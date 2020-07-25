@@ -42,13 +42,22 @@ def parse_dipole_interface(node):
         if len(node.bases) == 1: # otherwise it is forward declaration
             if node.bases[0].value.id == 'dipole_idl' and node.bases[0].attr == 'interface':
                 interface_def = InterfaceDef(node.name)
+                print("parse_dipole_interface: ", node.name)
                 for el in node.body:
                     if not isinstance(el, ast.FunctionDef):
                         raise Exception("interface expected to have methods only")
                     if el.body[0].value.elts != []:
                         raise Exception("method declaration with non-empty body")
                     m_def = InterfaceMethodDef(interface_def, el.name)
-                    m_def.method_ret_type = el.returns.id
+                    #ipdb.set_trace()
+                    if isinstance(el.returns, ast.Name):
+                        m_def.method_ret_type = el.returns.id
+                    elif isinstance(el.returns, ast.NameConstant):
+                        if el.returns.value == None:
+                            m_def.method_ret_type = None
+                        else:
+                            raise Exception("unexpected value of NameConstant")
+                                
                     for i in range(len(el.args.args)):
                         m_arg = el.args.args[i]
                         if i == 0:
@@ -145,6 +154,16 @@ def parse_file(pyidl_fn):
         print(node, type(node), node_name)
         #ipdb.set_trace()
 
+        if isinstance(node, ast.ImportFrom):
+            if node.module.find("_idl") != -1:
+                print("PYIDL module from import found: ", node.module)
+        if isinstance(node, ast.Import):
+            for n in node.names:
+                if n.name.find("_idl") != -1:
+                    if n.name != 'dipole_idl':
+                        print("PYIDL module import found: ", n.name)
+                        raise Exception(f"'import {n.name}' is not supported, use 'from {n.name} import *' instead")
+        
         interface_def = parse_dipole_interface(node)
         if interface_def:
             interface_defs.append(interface_def)

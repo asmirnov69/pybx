@@ -1,6 +1,6 @@
 #!/usr/local/anaconda3/bin/python
 
-import sys
+import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import ast
@@ -20,6 +20,20 @@ def verify(fn):
     mod = types.ModuleType(loader.name)
     loader.exec_module(mod)
     print(mod)
+
+@fuargs.action
+def verify2(fn):
+    import importlib.util
+    module_name = os.path.basename(fn)
+    file_path = fn
+    mod_path = os.path.expanduser(os.path.dirname(fn))
+    print(module_name, file_path, mod_path)
+    sys.path.append(mod_path)
+    #print(sys.path)
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    print(module)
     
 @fuargs.action
 def gen_cpp(fn):
