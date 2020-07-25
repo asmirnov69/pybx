@@ -151,7 +151,104 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f" return get_StructDescriptorT<{method_impl_class_name}::return_t, Dipole::Request>::get_struct_descriptor();", file = out_fd)
         print("}", file = out_fd)
 
+def generate_interface_client_definitions(interface_def, out_fd):
+    class_name = f"{interface_def.name}Ptr"
+    print(f"inline {class_name}::{class_name}() {{", file = out_fd)
+    print("{", file = out_fd)
+    print("}", file = out_fd)
+    print(f"inline {class_name}::{class_name}(Dipole::Communicator* comm,", file = out_fd)
+    print("std::shared_ptr<ix::WebSocket> ws,", file = out_fd)
+    print("const std::string& ws_url, const std::string& object_id)", file = out_fd)
+    print("{", file = out_fd)
+    print(" this->comm = comm;", file = out_fd)
+    print(" this->ws = ws;", file = out_fd)
+    print(" this->ws_url = ws_url;", file = out_fd)
+    print(" this->object_id = object_id;", file = out_fd)
+    print("}", file = out_fd)
+    print(f"inline {class_name}::{class_name}(Dipole::Communicator* comm, const std::string& object_id)", file = out_fd)
+    print("{", file = out_fd)
+    print(" this->comm = comm;", file = out_fd)
+    print(" this->object_id = object_id;", file = out_fd)
+    print("}", file = out_fd)
+
+    for m_def in interface_def.methods:
+        generate_interface_client_method_definition(class_name, m_def, out_fd)
+
+def generate_interface_client_method_definition(class_name, m_def, out_fd):
+    # Ptr methods
+    method_impl_class_name = f"{m_def.class_def.name}__{m_def.method_name}"
+    print(f"inline {m_def.method_ret_type} {class_name}::{m_def.method_name}(...args...)", file = out_fd)
+    print("{", file = out_fd)
+    ptr_method_template = f"""
+    Dipole::Request<{method_impl_class_name}::args_t> req{{
+    .message_type = Dipole::message_type_t::METHOD_CALL,
+      .message_id = Dipole::create_new_message_id(),
+      .method_signature = "{method_impl_class_name}",
+      .object_id = object_id,
+      .args = {method_impl_class_name}::args_t()
+      }};
+    req.args.hello = hello;
+    string ret;
+  
+    ostringstream json_os;
+    to_json(json_os, req);  
+    Dipole::ws_send(ws, json_os.str());
+    auto res_s = comm->wait_for_response(req.message_id);
+    comm->check_response(res_s.first, res_s.second);
     
+    Dipole::Response<{method_impl_class_name}::return_t> res;
+    from_json(&res, res_s.second);
+    ret = res.retval.retval;
+    return ret;
+    """
+    print(ptr_method_template, file = out_fd)
+    print("}", file = out_fd)
+
+def generate_interface_server_method_impls(interface_def, out_fd):
+    for m_def in interface_def.methods:
+        generate_interface_server_method_impl_definition(interface_def, m_def, out_fd)
+    
+def generate_interface_server_method_impl_definition(interface_def, m_def, out_fd):
+    method_impl_do_call_tmpl = f"""
+    Dipole::Request<args_t> req;
+    from_json(&req, req_s);
+    
+    auto o = comm->find_object(req.object_id);
+    ostringstream res_os;
+    if (auto self = dynamic_pointer_cast<{interface_def.name}>(o);
+	self != nullptr) {{
+      try {{
+	Dipole::Response<return_t> res;
+	res.message_id = Dipole::create_new_message_id();
+	res.orig_message_id = req.message_id;
+	res.retval.retval = self->{m_def.method_name}(... args ...);
+	to_json(res_os, res);
+      }} catch (exception& e) {{
+	Dipole::ExceptionResponse eres;
+	eres.message_id = Dipole::create_new_message_id();
+	eres.orig_message_id = req.message_id;
+	eres.remote_exception_text = e.what();
+	to_json(res_os, eres);
+      }}
+    }} else {{
+      throw runtime_error("dyn type mismatch");
+    }}
+
+    *res_s = res_os.str();
+
+    """
+
+    class_name = f"{interface_def.name}__{m_def.method_name}"
+    print(f"inline void {class_name}::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket>) override", file = out_fd)
+    print("{", file = out_fd)
+    print(method_impl_do_call_tmpl, file = out_fd)
+    print("}", file = out_fd)
+
+def generate_interface_server_method_impl_regs(interface_def, out_fd):
+    for m_def in interface_def.methods:
+        class_name = f"{interface_def.name}__{m_def.method_name}"
+        print(f"static int _i = Dipole::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
+        
 def generate_cpp_file(module_def, out_fd):
     for enum_def in module_def.enums:
         generate_enum_def(enum_def, out_fd)
@@ -165,3 +262,11 @@ def generate_cpp_file(module_def, out_fd):
     for interface_def in module_def.interfaces:
         generate_interface_server_declarations(interface_def, out_fd)
         
+    for interface_def in module_def.interfaces:
+        generate_interface_client_definitions(interface_def, out_fd)
+
+    for interface_def in module_def.interfaces:
+        generate_interface_server_method_impls(interface_def, out_fd)
+        
+    for interface_def in module_def.interfaces:
+        generate_interface_server_method_impl_regs(interface_def, out_fd)
