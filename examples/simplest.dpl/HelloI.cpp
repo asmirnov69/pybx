@@ -15,7 +15,7 @@ string HelloI::register_hello_cb(HelloCBPtr cb_ptr)
 Greetings HelloI::sayHello(string weSay) {
   cout << "HelloI::sayHello, size of cbs: " << cbs.size() << endl;
   for (auto& cb: cbs) {
-    cout << cb.ws << endl;
+    //cout << cb.ws << endl;
     try {
       cb.confirmHello("Hello");
     } catch (runtime_error& ex) {

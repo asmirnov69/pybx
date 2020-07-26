@@ -46,6 +46,13 @@ class ModuleDef:
         print("interfaces:", [x.name for x in self.interfaces])
         print("typedefs:", [x.name for x in self.typedefs])
 
+    def find_typedef(self, type_name):
+        ret = None
+        for typedef in self.typedefs:
+            if typedef.name == type_name:
+                ret = typedef
+        return ret
+        
         
 class InterfaceDef:
     def __init__(self, name):
