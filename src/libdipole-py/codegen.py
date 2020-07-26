@@ -52,8 +52,7 @@ class ModuleDef:
             if typedef.name == type_name:
                 ret = typedef
         return ret
-        
-        
+
 class InterfaceDef:
     def __init__(self, name):
         self.name = name

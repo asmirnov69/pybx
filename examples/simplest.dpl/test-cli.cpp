@@ -18,6 +18,13 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
 	   << " " << get_enum_value_string(g.color)
 	   << endl;
     }
+
+    GreetingsSeq gs;
+    gs.push_back(Greetings{.language = "russian", .text = "privet", .color = Color::GREEN});
+    gs.push_back(Greetings{.language = "german", .text = "halo", .color = Color::GREEN});
+
+    auto new_gs = hello_ptr.reformatGreetings(gs);
+    cout << "got " << new_gs.size() << " greetings" << endl;
     
     try {
       Greetings gg = hello_ptr.sayHello("HI");

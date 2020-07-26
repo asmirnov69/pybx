@@ -84,7 +84,13 @@ def generate_enum_def(enum_def, out_fd):
 def generate_interface_client_forward_declarations(module_def, out_fd):
     for interface_def in module_def.interfaces:
         print(f"class {interface_def.name}Ptr;", file = out_fd)
-    
+
+def generate_typedef_declarations(module_def, out_fd):
+    #ipdb.set_trace()
+    for typedef in module_def.typedefs:
+        if typedef.typedef_container == 'List':
+            print(f"typedef vector<{typedef.typedef_element_type}> {typedef.name};", file = out_fd)
+        
 def generate_interface_client_declarations(interface_def, out_fd):
     class_name = interface_def.name + "Ptr"
     print(f"class {class_name} {{", file = out_fd)
@@ -315,7 +321,8 @@ def generate_cpp_file(source_pyidl_fn, module_def, out_fd):
         generate_struct_def(struct_def, out_fd)
 
     generate_interface_client_forward_declarations(module_def, out_fd)
-        
+    generate_typedef_declarations(module_def, out_fd)
+    
     for interface_def in module_def.interfaces:
         generate_interface_client_declarations(interface_def, out_fd)
         

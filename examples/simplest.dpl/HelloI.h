@@ -14,6 +14,7 @@ private:
   
 public:
   Greetings sayHello(string weSay) override;
+  GreetingsSeq reformatGreetings(GreetingsSeq gs) override;
   string register_hello_cb(HelloCBPtr) override;
 };
 

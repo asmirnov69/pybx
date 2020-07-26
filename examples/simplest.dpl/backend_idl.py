@@ -11,7 +11,7 @@ if 1:
 
 class HelloCB: [] # forward declaration
 HelloCBPtr = dipole_idl.ObjectPtr[HelloCB]
-HelloCBPtrSeq = typing.List[HelloCBPtr]
+#HelloCBPtrSeq = typing.List[HelloCBPtr]
 
 class Color(enum.Enum):
     NORMAL = 0
@@ -23,8 +23,11 @@ class Greetings(dipole_idl.struct):
     text: str
     color: Color
 
+GreetingsSeq = typing.List[Greetings]
+
 class Hello(dipole_idl.interface):
     def sayHello(self, weSay: str) -> Greetings: []
+    def reformatGreetings(self, gs: GreetingsSeq) -> GreetingsSeq: []
     def register_hello_cb(self, cb: HelloCBPtr) -> str: []
    
 class HelloCB(dipole_idl.interface):

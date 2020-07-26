@@ -58,6 +58,7 @@ template <> inline StructDescriptor get_struct_descriptor<Greetings>()
 }
 class HelloPtr;
 class HelloCBPtr;
+typedef vector<Greetings> GreetingsSeq;
 class HelloPtr {
 private:
   Dipole::Communicator* comm{nullptr};
@@ -70,6 +71,7 @@ public:
   HelloPtr(Dipole::Communicator* comm, const std::string& object_id);
   void activate(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   Greetings sayHello(std::string weSay);
+  GreetingsSeq reformatGreetings(GreetingsSeq gs);
   std::string register_hello_cb(HelloCBPtr cb);
 };
 template <> inline StructDescriptor get_struct_descriptor<HelloPtr>()
@@ -105,6 +107,7 @@ class Hello : public Dipole::Object {
 public:
  typedef HelloPtr ptr;
  virtual Greetings sayHello(std::string weSay) = 0;
+ virtual GreetingsSeq reformatGreetings(GreetingsSeq gs) = 0;
  virtual std::string register_hello_cb(HelloCBPtr cb) = 0;
 };
 struct Hello__sayHello : public Dipole::method_impl
@@ -138,6 +141,38 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__sayHello::retur
 template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<Hello__sayHello::return_t>>()
 {
  return get_StructDescriptor_T<Hello__sayHello::return_t, Dipole::Response>::get_struct_descriptor();
+}
+struct Hello__reformatGreetings : public Dipole::method_impl
+{
+ struct args_t {
+ GreetingsSeq gs;
+ };
+ struct return_t {
+   GreetingsSeq retval;
+ };
+ void do_call(const std::string& req_s, std::string* res_s, std::shared_ptr<ix::WebSocket>) override;
+};
+template <> inline StructDescriptor get_struct_descriptor<Hello__reformatGreetings::args_t>()
+{
+ static const StructDescriptor sd = {
+  make_member_descriptor("gs", &Hello__reformatGreetings::args_t::gs),
+ };
+ return sd;
+}
+template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<Hello__reformatGreetings::args_t>>()
+{
+ return get_StructDescriptor_T<Hello__reformatGreetings::args_t, Dipole::Request>::get_struct_descriptor();
+}
+template <> inline StructDescriptor get_struct_descriptor<Hello__reformatGreetings::return_t>()
+{
+ static const StructDescriptor sd = {
+  make_member_descriptor("ret", &Hello__reformatGreetings::return_t::retval),
+ };
+ return sd;
+}
+template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<Hello__reformatGreetings::return_t>>()
+{
+ return get_StructDescriptor_T<Hello__reformatGreetings::return_t, Dipole::Response>::get_struct_descriptor();
 }
 struct Hello__register_hello_cb : public Dipole::method_impl
 {
@@ -264,6 +299,32 @@ inline Greetings HelloPtr::sayHello(std::string weSay)
     return ret;
     
 }
+inline GreetingsSeq HelloPtr::reformatGreetings(GreetingsSeq gs)
+{
+
+    Dipole::Request<Hello__reformatGreetings::args_t> req{
+    .message_type = Dipole::message_type_t::METHOD_CALL,
+      .message_id = Dipole::create_new_message_id(),
+      .method_signature = "Hello__reformatGreetings",
+      .object_id = object_id,
+      .args = Hello__reformatGreetings::args_t()
+      };
+
+    req.args.gs=gs;
+    GreetingsSeq ret;
+  
+    ostringstream json_os;
+    to_json(json_os, req);  
+    Dipole::ws_send(ws, json_os.str());
+    auto res_s = comm->wait_for_response(req.message_id);
+    comm->check_response(res_s.first, res_s.second);
+    
+    Dipole::Response<Hello__reformatGreetings::return_t> res;
+    from_json(&res, res_s.second);
+    ret = res.retval.retval;
+    return ret;
+    
+}
 inline std::string HelloPtr::register_hello_cb(HelloCBPtr cb)
 {
 
@@ -381,6 +442,41 @@ inline void Hello__sayHello::do_call(const string& req_s, string* res_s, shared_
     
 }
 UNIQUE = Dipole::RemoteMethods::register_method("Hello__sayHello", std::make_shared<Hello__sayHello>());
+inline void Hello__reformatGreetings::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
+{
+
+    Dipole::Request<args_t> req;
+    from_json(&req, req_s);
+
+    
+
+    auto o = comm->find_object(req.object_id);
+    ostringstream res_os;
+    if (auto self = dynamic_pointer_cast<Hello>(o);
+	self != nullptr) {
+      try {
+	Dipole::Response<return_t> res;
+	res.message_id = Dipole::create_new_message_id();
+	res.orig_message_id = req.message_id;
+
+	res.retval.retval = self->reformatGreetings(req.args.gs);
+	to_json(res_os, res);
+      } catch (exception& e) {
+	Dipole::ExceptionResponse eres;
+	eres.message_id = Dipole::create_new_message_id();
+	eres.orig_message_id = req.message_id;
+	eres.remote_exception_text = e.what();
+	to_json(res_os, eres);
+      }
+    } else {
+      throw runtime_error("dyn type mismatch");
+    }
+
+    *res_s = res_os.str();
+
+    
+}
+UNIQUE = Dipole::RemoteMethods::register_method("Hello__reformatGreetings", std::make_shared<Hello__reformatGreetings>());
 inline void Hello__register_hello_cb::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 

@@ -35,3 +35,13 @@ Greetings HelloI::sayHello(string weSay) {
   ret.color = Color::NORMAL;
   return ret;
 }
+
+GreetingsSeq HelloI::reformatGreetings(GreetingsSeq gs)
+{
+  cout << "HelloI::reformatGreetings: " << gs.size() << " greetings" << endl;
+  for (auto& el: gs) {
+    el.text = el.text + " " + el.text;
+    el.color = Color::RED;
+  }
+  return gs;
+}
