@@ -26,8 +26,7 @@ Dipole::Object::~Object()
 Dipole::Communicator::Communicator()
 {
   RemoteMethods::set_communicator(this);
-  w[0] = move(thread(bind(&Communicator::do_dispath_method_call_thread, this)));
-  w[1] = move(thread(bind(&Communicator::do_dispath_method_call_thread, this)));
+  worker_thread = move(thread(bind(&Communicator::do_dispatch_method_call_thread, this)));
 }
 
 void Dipole::Communicator::set_listen_port(int listen_port)
@@ -73,8 +72,7 @@ Dipole::Communicator::connect(const string& ws_url, const string& object_id)
       cerr << "got something " << msg->str.size() << endl;
       if (msg->type == ix::WebSocketMessageType::Message)
         {
-	  //this->dispatch(webSocket, msg->str);
-	  workers_q.blocking_put(make_pair(webSocket, msg->str));
+	  this->dispatch(webSocket, msg->str);
         }
     });
 
@@ -88,16 +86,16 @@ Dipole::Communicator::connect(const string& ws_url, const string& object_id)
   return webSocket;
 }
 
-void Dipole::Communicator::do_dispath_method_call_thread()
+void Dipole::Communicator::do_dispatch_method_call_thread()
 {
   while (true) {
     try {
       pair<shared_ptr<ix::WebSocket>, string> m;
       cout << "Dipole::Communicator::do_dispath_method_call_thread: start waiting for new message" << endl;
-      workers_q.blocking_get(&m);
+      worker_q.blocking_get(&m);
       auto [ws, msg] = m;
       cout << "Dipole::Communicator::do_dispath_method_call_thread: msg: " << msg << endl;
-      this->dispatch(ws, msg);
+      this->dispatch_method_call(ws, msg);
     } catch (exception& ex) {
       cout << "Dipole::Communicator::do_dispatch_method_call_thread caught exception" << endl;
       cout << ex.what() << endl;
@@ -110,7 +108,7 @@ void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& 
   auto msg_type = get_message_type(msg);
   switch (msg_type) {
   case message_type_t::METHOD_CALL:
-    dispatch_method_call(ws, msg);
+    worker_q.blocking_put(make_pair(ws, msg));
     break;
   case message_type_t::METHOD_CALL_RETURN:
   case message_type_t::METHOD_CALL_EXCEPTION:
@@ -119,7 +117,7 @@ void Dipole::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& 
   }
 }
 
-void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket>  ws,
+void Dipole::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket> ws,
 						const string& msg)
 {
   string method_signature = get_method_signature(msg);
@@ -167,18 +165,17 @@ void Dipole::Communicator::signal_response(const string& message_id,
 					   message_type_t msg_type,
 					   const string& msg)
 {
+  lock_guard g(waiters_lock);
   shared_ptr<Waiter> w;
-  {
-    lock_guard g(waiters_lock);  
-    auto it = waiters.find(message_id);
-    if (it == waiters.end()) {
-      ostringstream m;
-      m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
-      throw runtime_error(m.str());
-    }
-    w = (*it).second;
+
+  auto it = waiters.find(message_id);
+  if (it == waiters.end()) {
+    ostringstream m;
+    m << "Dipole::Communicator::signal_response: unknown message_id: " << message_id;
+    throw runtime_error(m.str());
   }
-  w->blocking_put(make_pair(msg_type, msg));
+  w = (*it).second;
+  w->nonblocking_put(make_pair(msg_type, msg));
 }
 
 void Dipole::Communicator::check_response(message_type_t msg_type,
@@ -195,7 +192,7 @@ void Dipole::Communicator::check_response(message_type_t msg_type,
     }
     break;
   case Dipole::message_type_t::METHOD_CALL:
-    throw runtime_error("HelloPtr::sayHello: unexcepted message type");
+    throw runtime_error("Dipole::Communicator::check_response: unexcepted message type METHOD_CALL");
     break;
   }
 }
@@ -227,9 +224,8 @@ void Dipole::Communicator::run()
 					 }
 				       } else if (msg->type == ix::WebSocketMessageType::Message) {
 					 string res_s;
-					 //this->dispatch(webSocket, msg->str);
 					 cout << "message " << msg->str.size() << endl;
-					 workers_q.blocking_put(make_pair(webSocket, msg->str));
+					 this->dispatch(webSocket, msg->str);
 				       } else if (msg->type == ix::WebSocketMessageType::Close) {
 					 cout << "connection closed" << endl;
 				       } else {

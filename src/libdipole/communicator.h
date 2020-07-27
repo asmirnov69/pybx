@@ -42,12 +42,12 @@ namespace Dipole {
     typedef CBQ<pair<message_type_t, string>, 1> Waiter;
     map<string, shared_ptr<Waiter>> waiters; // message_id -> waiter
 
-    CBQ<pair<shared_ptr<ix::WebSocket>, string>, 8> workers_q;    
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_method_call(shared_ptr<ix::WebSocket> ws, const string& msg);
     void dispatch_response(message_type_t msg_type, const string& msg);
-    void do_dispath_method_call_thread();
-    thread w[2];
+    void do_dispatch_method_call_thread();
+    CBQ<pair<shared_ptr<ix::WebSocket>, string>, 8> worker_q;    
+    thread worker_thread;
 
     shared_ptr<ix::WebSocket> connect(const string& ws_url, const string& object_id);
     string add_object(shared_ptr<Object>, const string& object_id);

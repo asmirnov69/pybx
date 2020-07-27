@@ -90,7 +90,7 @@ class Communicator
 				'ret': res
 			    }
 			};
-			this.comm.ws.send(JSON.stringify(res_message));
+			this.ws.send(JSON.stringify(res_message));
 		    }
 		});
 	    };
@@ -195,7 +195,8 @@ class HelloCB {
     __call_method(method, args) {
 	method = method.split("__")[1];
 	if (method == 'confirmHello') {
-	    return this.confirmHello(...args);
+	    //return this.confirmHello(...args);
+	    return this.confirmHello(Array.from(args));
 	}
 	throw new Error("unknown method " + method);
     }
@@ -225,13 +226,13 @@ class App extends React.Component {
 	let object_id = "hello";
 	this.comm.connect(ws_url, object_id).then(o_ptr => {
 	    this.hello_ptr = new HelloPtr(o_ptr);
-	//}).then(() => {
-	//    let hellocb_o = new HelloCBI();
-	//    let hellocb_o_ptr = this.comm.add_object(hellocb_o);
-	//    let hellocb_ptr = new HelloCBPtr(hellocb_o_ptr);
-	//    return this.hello_ptr.register_hello_cb(hellocb_ptr);
-	//}).then(res => {
-	//    console.log("register_hello_cb: ", res);	    
+	}).then(() => {
+	    let hellocb_o = new HelloCBI();
+	    let hellocb_o_ptr = this.comm.add_object(hellocb_o);
+	    let hellocb_ptr = new HelloCBPtr(hellocb_o_ptr);
+	    return this.hello_ptr.register_hello_cb(hellocb_ptr);
+	}).then(res => {
+	    console.log("register_hello_cb: ", res);	    
 	    return this.hello_ptr.sayHello("hi");
 	}).then(g => {
 	    console.log("server response:", g);
@@ -240,11 +241,13 @@ class App extends React.Component {
     }
     
     onClick() {
+	this.pb.disabled = true;
 	let gs = [];
 	gs.push(new Greetings("russian", "privet", "GREEN"));
 	gs.push(new Greetings("german", "halo", "GREEN"));
 	this.hello_ptr.reformatGreetings(gs).then(ret => {
-	    this.setState({...this.state, greeting2: gs.length});
+	    this.setState({...this.state, greeting2: gs.length},
+			  () => {this.pb.disabled = false; });
 	});
     }
     
@@ -253,7 +256,7 @@ class App extends React.Component {
 		<h1>Hello from modules</h1>
 		<h2>{this.state.greeting}</h2>
 		<h2>{this.state.greeting2}</h2>
-		<button onClick={this.onClick}>PRESS</button>
+		<button ref={r => this.pb = r} onClick={this.onClick}>PRESS</button>
 	       </div>);
     }
 };

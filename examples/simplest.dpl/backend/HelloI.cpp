@@ -1,3 +1,4 @@
+//#include <unistd.h>
 #include "HelloI.h"
 
 string HelloCBI::confirmHello(string hello)
@@ -33,6 +34,7 @@ Greetings HelloI::sayHello(string weSay) {
   ret.language = "english";
   ret.text = "Hello";
   ret.color = Color::NORMAL;
+  //sleep(100);
   return ret;
 }
 
