@@ -70,7 +70,7 @@ Dipole::Communicator::connect(const string& ws_url, const string& object_id)
   webSocket->disableAutomaticReconnection();
   webSocket->setUrl(ws_url);
   webSocket->setOnMessageCallback([this, webSocket](const ix::WebSocketMessagePtr& msg) {
-      cerr << "got something" << endl;
+      cerr << "got something " << msg->str.size() << endl;
       if (msg->type == ix::WebSocketMessageType::Message)
         {
 	  //this->dispatch(webSocket, msg->str);
@@ -228,6 +228,7 @@ void Dipole::Communicator::run()
 				       } else if (msg->type == ix::WebSocketMessageType::Message) {
 					 string res_s;
 					 //this->dispatch(webSocket, msg->str);
+					 cout << "message " << msg->str.size() << endl;
 					 workers_q.blocking_put(make_pair(webSocket, msg->str));
 				       } else if (msg->type == ix::WebSocketMessageType::Close) {
 					 cout << "connection closed" << endl;
