@@ -262,3 +262,29 @@ def parse_module(pyidl_fn):
     #ipdb.set_trace()
     #print("walk is done")
     return ModuleDef(import_defs, enum_defs, struct_defs, typedef_defs, interface_defs)
+
+# handle imports
+def parse_all_modules(fn):
+    module_defs = parse_module(fn)
+    #module_defs.dump()
+        
+    nested_modules = module_defs.imports
+    processed_modules = set()
+    mod_search_pathes = [os.path.dirname(fn)]
+    while True:
+        if len(nested_modules) == 0:
+            break
+        import_name = nested_modules[0]; nested_modules = nested_modules[1:]
+        if import_name in processed_modules:
+            continue
+        print("processing import", import_name)
+        import_fn = find_import_file(import_name, mod_search_pathes)
+        if import_fn == None:
+            raise Exception(f"can't find file for import module {import_name}")
+        new_module_defs = parse_module(import_fn)
+        new_module_defs.dump()
+        module_defs.merge(new_module_defs)
+        nested_modules.extend(new_module_defs.imports)
+        processed_modules.add(import_name)
+
+    return module_defs
