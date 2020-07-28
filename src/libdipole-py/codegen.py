@@ -14,6 +14,38 @@ def find_import_file(import_name, pathes):
 class Type:
     def __init__(self, py_type):
         self.py_type = py_type
+
+    def is_fundamental_type(self):
+        return self.py_type in ['str']
+
+    def is_vector(self, typedefs):
+        ret = False
+        for typedef in typedefs:
+            if typedef.name == self.py_type:
+                if typedef.typedef_container == 'List':
+                    ret = True
+                    break
+        return ret
+
+    def is_ptr_type(self, typedefs):
+        ret = False
+        for typedef in typedefs:
+            if typedef.name == self.py_type:
+                if typedef.typedef_container == 'ObjectPtr':
+                    ret = True
+                    break
+        return ret        
+    
+    def get_vector_value_type(self, typedefs):
+        ret = None
+        for typedef in typedefs:
+            if typedef.name == self.py_type:
+                if typedef.typedef_container == 'List':
+                    ret = typedef.typedef_element_type
+                    break
+        if ret == None:
+            raise Exception(f"get_vector_value_type: type {self.py_type} is not vector type")
+        return ret        
         
     def get_cpp_type(self):
         if self.py_type == 'str':

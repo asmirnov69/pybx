@@ -4,7 +4,7 @@ import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import ast
-import codegen, codegen_cpp
+import codegen, codegen_cpp, codegen_js
 
 @fuargs.action
 def ast_dump(fn):
