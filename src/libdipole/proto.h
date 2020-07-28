@@ -19,6 +19,7 @@ namespace Dipole {
   message_type_t get_message_type(const string& msg);
   string get_method_signature(const string& msg);
   string get_orig_message_id(const string& msg);
+  string get_message_id(const string& msg);
 
   template <class ARGS> struct Request {
     message_type_t message_type{message_type_t::METHOD_CALL};

@@ -273,35 +273,33 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
 
     m_args = ", ".join(["req.args." + x for x in m_def.method_args.get_args_list()])
     method_impl_do_call_tmpl = f"""
-    Dipole::Request<args_t> req;
-    from_json(&req, req_s);
-
-    {activations_code}
-
-    auto o = comm->find_object(req.object_id);
     ostringstream res_os;
-    if (auto self = dynamic_pointer_cast<{interface_def.name}>(o);
-	self != nullptr) {{
-      try {{
-	Dipole::Response<return_t> res;
-	res.message_id = Dipole::create_new_message_id();
-	res.orig_message_id = req.message_id;
+    try {{
+      Dipole::Request<args_t> req;
+      from_json(&req, req_s);
 
-	res.retval.retval = self->{m_def.method_name}({m_args});
-	to_json(res_os, res);
-      }} catch (exception& e) {{
-	Dipole::ExceptionResponse eres;
-	eres.message_id = Dipole::create_new_message_id();
-	eres.orig_message_id = req.message_id;
-	eres.remote_exception_text = e.what();
-	to_json(res_os, eres);
+      {activations_code}
+
+      auto o = comm->find_object(req.object_id);
+      auto self = dynamic_pointer_cast<{interface_def.name}>(o);
+      if (self == nullptr) {{
+        throw runtime_error("dyn type mismatch");
       }}
-    }} else {{
-      throw runtime_error("dyn type mismatch");
+
+      Dipole::Response<return_t> res;
+      res.message_id = Dipole::create_new_message_id();
+      res.orig_message_id = req.message_id;
+      res.retval.retval = self->{m_def.method_name}({m_args});
+      to_json(res_os, res);
+    }} catch (exception& e) {{
+      Dipole::ExceptionResponse eres;
+      eres.message_id = Dipole::create_new_message_id();
+      eres.orig_message_id = Dipole::get_message_id(req_s);
+      eres.remote_exception_text = e.what();
+      to_json(res_os, eres);
     }}
 
     *res_s = res_os.str();
-
     """
 
     class_name = f"{interface_def.name}__{m_def.method_name}"

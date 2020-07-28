@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// generated code: source - examples/simplest.dpl/backend_idl.py
+// generated code: source - ./examples/simplest.dpl/backend/backend_idl.py
 #ifndef __BACKEND_IDL_STUBS_HH__
 #define __BACKEND_IDL_STUBS_HH__
 
@@ -410,140 +410,132 @@ inline std::string HelloCBPtr::confirmHello(std::string hello)
 inline void Hello__sayHello::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
-    Dipole::Request<args_t> req;
-    from_json(&req, req_s);
-
-    
-
-    auto o = comm->find_object(req.object_id);
     ostringstream res_os;
-    if (auto self = dynamic_pointer_cast<Hello>(o);
-	self != nullptr) {
-      try {
-	Dipole::Response<return_t> res;
-	res.message_id = Dipole::create_new_message_id();
-	res.orig_message_id = req.message_id;
+    try {
+      Dipole::Request<args_t> req;
+      from_json(&req, req_s);
 
-	res.retval.retval = self->sayHello(req.args.weSay);
-	to_json(res_os, res);
-      } catch (exception& e) {
-	Dipole::ExceptionResponse eres;
-	eres.message_id = Dipole::create_new_message_id();
-	eres.orig_message_id = req.message_id;
-	eres.remote_exception_text = e.what();
-	to_json(res_os, eres);
+      
+
+      auto o = comm->find_object(req.object_id);
+      auto self = dynamic_pointer_cast<Hello>(o);
+      if (self == nullptr) {
+        throw runtime_error("dyn type mismatch");
       }
-    } else {
-      throw runtime_error("dyn type mismatch");
+
+      Dipole::Response<return_t> res;
+      res.message_id = Dipole::create_new_message_id();
+      res.orig_message_id = req.message_id;
+      res.retval.retval = self->sayHello(req.args.weSay);
+      to_json(res_os, res);
+    } catch (exception& e) {
+      Dipole::ExceptionResponse eres;
+      eres.message_id = Dipole::create_new_message_id();
+      eres.orig_message_id = Dipole::get_message_id(req_s);
+      eres.remote_exception_text = e.what();
+      to_json(res_os, eres);
     }
 
     *res_s = res_os.str();
-
     
 }
 UNIQUE = Dipole::RemoteMethods::register_method("Hello__sayHello", std::make_shared<Hello__sayHello>());
 inline void Hello__reformatGreetings::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
-    Dipole::Request<args_t> req;
-    from_json(&req, req_s);
-
-    
-
-    auto o = comm->find_object(req.object_id);
     ostringstream res_os;
-    if (auto self = dynamic_pointer_cast<Hello>(o);
-	self != nullptr) {
-      try {
-	Dipole::Response<return_t> res;
-	res.message_id = Dipole::create_new_message_id();
-	res.orig_message_id = req.message_id;
+    try {
+      Dipole::Request<args_t> req;
+      from_json(&req, req_s);
 
-	res.retval.retval = self->reformatGreetings(req.args.gs);
-	to_json(res_os, res);
-      } catch (exception& e) {
-	Dipole::ExceptionResponse eres;
-	eres.message_id = Dipole::create_new_message_id();
-	eres.orig_message_id = req.message_id;
-	eres.remote_exception_text = e.what();
-	to_json(res_os, eres);
+      
+
+      auto o = comm->find_object(req.object_id);
+      auto self = dynamic_pointer_cast<Hello>(o);
+      if (self == nullptr) {
+        throw runtime_error("dyn type mismatch");
       }
-    } else {
-      throw runtime_error("dyn type mismatch");
+
+      Dipole::Response<return_t> res;
+      res.message_id = Dipole::create_new_message_id();
+      res.orig_message_id = req.message_id;
+      res.retval.retval = self->reformatGreetings(req.args.gs);
+      to_json(res_os, res);
+    } catch (exception& e) {
+      Dipole::ExceptionResponse eres;
+      eres.message_id = Dipole::create_new_message_id();
+      eres.orig_message_id = Dipole::get_message_id(req_s);
+      eres.remote_exception_text = e.what();
+      to_json(res_os, eres);
     }
 
     *res_s = res_os.str();
-
     
 }
 UNIQUE = Dipole::RemoteMethods::register_method("Hello__reformatGreetings", std::make_shared<Hello__reformatGreetings>());
 inline void Hello__register_hello_cb::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
-    Dipole::Request<args_t> req;
-    from_json(&req, req_s);
-
-    req.args.cb.activate(comm, ws);
-
-    auto o = comm->find_object(req.object_id);
     ostringstream res_os;
-    if (auto self = dynamic_pointer_cast<Hello>(o);
-	self != nullptr) {
-      try {
-	Dipole::Response<return_t> res;
-	res.message_id = Dipole::create_new_message_id();
-	res.orig_message_id = req.message_id;
+    try {
+      Dipole::Request<args_t> req;
+      from_json(&req, req_s);
 
-	res.retval.retval = self->register_hello_cb(req.args.cb);
-	to_json(res_os, res);
-      } catch (exception& e) {
-	Dipole::ExceptionResponse eres;
-	eres.message_id = Dipole::create_new_message_id();
-	eres.orig_message_id = req.message_id;
-	eres.remote_exception_text = e.what();
-	to_json(res_os, eres);
+      req.args.cb.activate(comm, ws);
+
+      auto o = comm->find_object(req.object_id);
+      auto self = dynamic_pointer_cast<Hello>(o);
+      if (self == nullptr) {
+        throw runtime_error("dyn type mismatch");
       }
-    } else {
-      throw runtime_error("dyn type mismatch");
+
+      Dipole::Response<return_t> res;
+      res.message_id = Dipole::create_new_message_id();
+      res.orig_message_id = req.message_id;
+      res.retval.retval = self->register_hello_cb(req.args.cb);
+      to_json(res_os, res);
+    } catch (exception& e) {
+      Dipole::ExceptionResponse eres;
+      eres.message_id = Dipole::create_new_message_id();
+      eres.orig_message_id = Dipole::get_message_id(req_s);
+      eres.remote_exception_text = e.what();
+      to_json(res_os, eres);
     }
 
     *res_s = res_os.str();
-
     
 }
 UNIQUE = Dipole::RemoteMethods::register_method("Hello__register_hello_cb", std::make_shared<Hello__register_hello_cb>());
 inline void HelloCB__confirmHello::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
-    Dipole::Request<args_t> req;
-    from_json(&req, req_s);
-
-    
-
-    auto o = comm->find_object(req.object_id);
     ostringstream res_os;
-    if (auto self = dynamic_pointer_cast<HelloCB>(o);
-	self != nullptr) {
-      try {
-	Dipole::Response<return_t> res;
-	res.message_id = Dipole::create_new_message_id();
-	res.orig_message_id = req.message_id;
+    try {
+      Dipole::Request<args_t> req;
+      from_json(&req, req_s);
 
-	res.retval.retval = self->confirmHello(req.args.hello);
-	to_json(res_os, res);
-      } catch (exception& e) {
-	Dipole::ExceptionResponse eres;
-	eres.message_id = Dipole::create_new_message_id();
-	eres.orig_message_id = req.message_id;
-	eres.remote_exception_text = e.what();
-	to_json(res_os, eres);
+      
+
+      auto o = comm->find_object(req.object_id);
+      auto self = dynamic_pointer_cast<HelloCB>(o);
+      if (self == nullptr) {
+        throw runtime_error("dyn type mismatch");
       }
-    } else {
-      throw runtime_error("dyn type mismatch");
+
+      Dipole::Response<return_t> res;
+      res.message_id = Dipole::create_new_message_id();
+      res.orig_message_id = req.message_id;
+      res.retval.retval = self->confirmHello(req.args.hello);
+      to_json(res_os, res);
+    } catch (exception& e) {
+      Dipole::ExceptionResponse eres;
+      eres.message_id = Dipole::create_new_message_id();
+      eres.orig_message_id = Dipole::get_message_id(req_s);
+      eres.remote_exception_text = e.what();
+      to_json(res_os, eres);
     }
 
     *res_s = res_os.str();
-
     
 }
 UNIQUE = Dipole::RemoteMethods::register_method("HelloCB__confirmHello", std::make_shared<HelloCB__confirmHello>());

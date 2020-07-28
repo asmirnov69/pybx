@@ -59,6 +59,21 @@ string Dipole::get_orig_message_id(const string& msg)
   }
 
   ostringstream m;
-  m << "Dipole::get_orig_message_id: can' find orig_message_id_re: " << msg;
+  m << "Dipole::get_orig_message_id: can' find orig_message_id: " << msg;
+  throw runtime_error(m.str());
+}
+
+string Dipole::get_message_id(const string& msg)
+{
+  static const regex message_id_re(R"D("message-id": ?"([\w-]+)")D");
+  smatch ma;
+  if (regex_search(msg, ma, message_id_re)) {
+    if (ma.ready() && ma.size() == 2) {
+      return ma[1];
+    }
+  }
+
+  ostringstream m;
+  m << "Dipole::get_message_id: can' find message_id: " << msg;
   throw runtime_error(m.str());
 }
