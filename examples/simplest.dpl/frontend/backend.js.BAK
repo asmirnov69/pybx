@@ -33,7 +33,9 @@ export class HelloPtr
 	});
 
 	return p.then(ret => {
-	    return new Greetings(ret.language, ret.text, ret.color);
+	    let tret = new Greetings();
+	    Object.assign(tret, ret);
+	    return tret;
 	});
     }
 
@@ -57,7 +59,9 @@ export class HelloPtr
 	return p.then(ret => {
 	    let tret = [];
 	    for (var i = 0; i < ret.length; i++) {
-		tret.push(new Greetings(ret[i].language, ret[i].text, ret[i].color));
+		let o = new Greetings();
+		Object.assign(o, ret[i]);
+		tret.push(o);
 	    }
 	    return tret;
 	});
