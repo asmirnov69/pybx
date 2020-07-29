@@ -13,9 +13,9 @@
 using namespace std;
 
 #include <kvan/json-io.h>
-#include <libdipole/communicator.h>
-#include <libdipole/proto.h>
-#include <libdipole/remote-methods.h>
+#include <libdipole-cpp/communicator.h>
+#include <libdipole-cpp/proto.h>
+#include <libdipole-cpp/remote-methods.h>
     
 enum class Color {
 NORMAL = 0,

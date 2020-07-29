@@ -19,9 +19,9 @@ def generate_prolog(source_pyidl_fn, out_fd):
 using namespace std;
 
 #include <kvan/json-io.h>
-#include <libdipole/communicator.h>
-#include <libdipole/proto.h>
-#include <libdipole/remote-methods.h>
+#include <libdipole-cpp/communicator.h>
+#include <libdipole-cpp/proto.h>
+#include <libdipole-cpp/remote-methods.h>
     """
     print(prolog_code, file = out_fd)
 

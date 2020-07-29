@@ -1,4 +1,4 @@
 project(libdipole-src)
 
-add_subdirectory(libdipole)
+add_subdirectory(libdipole-cpp)
 

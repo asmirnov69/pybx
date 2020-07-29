@@ -2,7 +2,7 @@
 using namespace std;
 
 #include <kvan/fuargs.h>
-#include <libdipole/communicator.h>
+#include <libdipole-cpp/communicator.h>
 #include "backend_idl.h"
 #include "HelloI.h"
 

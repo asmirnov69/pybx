@@ -1,5 +1,5 @@
 #include <iostream>
-#include <libdipole/remote-methods.h>
+#include <libdipole-cpp/remote-methods.h>
 
 map<string, shared_ptr<Dipole::method_impl>> Dipole::RemoteMethods::remote_methods;
 

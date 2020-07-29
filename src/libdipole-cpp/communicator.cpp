@@ -6,9 +6,9 @@ using namespace std;
 
 #include <kvan/uuid.h>
 #include <kvan/json-io.h>
-#include <libdipole/communicator.h>
-#include <libdipole/proto.h>
-#include <libdipole/remote-methods.h>
+#include <libdipole-cpp/communicator.h>
+#include <libdipole-cpp/proto.h>
+#include <libdipole-cpp/remote-methods.h>
 
 void Dipole::ws_send(shared_ptr<ix::WebSocket> ws, const string& msg)
 {

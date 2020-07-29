@@ -10,7 +10,7 @@ using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <kvan/cbq.h>
-#include <libdipole/proto.h>
+#include <libdipole-cpp/proto.h>
 
 namespace Dipole {
 
