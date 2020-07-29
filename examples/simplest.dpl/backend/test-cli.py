@@ -4,9 +4,10 @@ from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import asyncio, dipole, uuid, json
 import backend_idl
-gen_code = dipole.build(backend_idl)
-#print(gen_code)
-exec(gen_code)
+dipole.build_ptrs(backend_idl)
+#gen_code = dipole.build(backend_idl)
+##print(gen_code)
+#exec(gen_code)
 
 """
 # this code should be generated using defintion of backend_idl.Hello
@@ -48,6 +49,7 @@ async def a_run_client():
 
 @fuargs.action
 def run_client():
+    #ipdb.set_trace()
     asyncio.get_event_loop().run_until_complete(a_run_client())
     asyncio.get_event_loop().run_forever()
     

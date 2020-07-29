@@ -4,15 +4,27 @@ import json, dataclasses, enum, inspect
 import dipole_idl
 
 ptrs_map = {}
+ptrs_map2 = {}
 
 def build(idl_mod):
     gen_code = ""
+    interface_classes = []
     for mod_el in idl_mod.__dict__.values():
         if inspect.isclass(mod_el) and issubclass(mod_el, dipole_idl.interface):
+            interface_classes.append(mod_el)
             gen_code += dipole_idl.generate_ptr_class_code(mod_el)
     print(gen_code)
+    return (interface_classes, gen_code)
+
+def build_ptrs(backend_idl):
+    interface_classes, gen_code = build(backend_idl)
+    exec(gen_code)
+    print(ptrs_map)
     #ipdb.set_trace()
-    return gen_code
+    for interface_class in interface_classes:
+        ptr_class_name = interface_class.__name__ + 'Ptr'
+        print(f"defining {ptr_class_name}")
+        setattr(backend_idl, ptr_class_name, ptrs_map2[interface_class.__name__])
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
