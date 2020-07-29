@@ -228,8 +228,12 @@ void Dipole::Communicator::run()
 					 this->dispatch(webSocket, msg->str);
 				       } else if (msg->type == ix::WebSocketMessageType::Close) {
 					 cout << "connection closed" << endl;
+				       } else if (msg->type == ix::WebSocketMessageType::Ping) {
+					 cout << __func__ << ": received ping" << endl;
 				       } else {
-					 throw runtime_error("handle_ws_messages: unknown message");
+					 ostringstream m;
+					 m << __func__ << ": unknown message " << int(msg->type);
+					 throw runtime_error(m.str());
 				       }
 				     });				     
 				 });

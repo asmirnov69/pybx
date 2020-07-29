@@ -1,6 +1,18 @@
-import websockets, uuid
-from websockets.extensions import permessage_deflate
-import json, dataclasses, enum
+import ipdb
+import websockets, asyncio, uuid
+import json, dataclasses, enum, inspect
+import dipole_idl
+
+ptrs_map = {}
+
+def build(idl_mod):
+    gen_code = ""
+    for mod_el in idl_mod.__dict__.values():
+        if inspect.isclass(mod_el) and issubclass(mod_el, dipole_idl.interface):
+            gen_code += dipole_idl.generate_ptr_class_code(mod_el)
+    print(gen_code)
+    #ipdb.set_trace()
+    return gen_code
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
@@ -12,10 +24,20 @@ class EnhancedJSONEncoder(json.JSONEncoder):
             return o.name
         return super().default(o)
 
+def set_result_f(args):
+    fut = args[0]
+    result = args[1]
+    fut.set_result(result)
+    
 class WSHandler:
     def __init__(self, comm):
         self.comm = comm
         self.ws = None
+
+    async def client_message_loop(self, ws_url):
+        print(f"connecting to {ws_url}")
+        self.ws = await websockets.connect(ws_url)
+        asyncio.create_task(self.run_message_loop())
 
     async def run_message_loop(self):
         print("entering message loop")
@@ -29,11 +51,16 @@ class WSHandler:
                     await self.ws.close()
                     break
                 continue
-            print("WSHandler::run_message_loop: ", message)        
+
             message_json = json.loads(message)
-            print(message_json)
             if message_json['message-type'] == 'method-call':
                 await self.comm.do_call__(message_json, self.ws)
+            elif message_json['message-type'] in ['method-call-return', 'method-call-exception']:
+                orig_message_id = message_json['orig-message-id']
+                result_fut, loop = self.comm.messages[orig_message_id]
+                loop.call_soon_threadsafe(set_result_f, [result_fut, message_json])
+            else:
+                print("run_message_loop: unknown message type:", message_json)
             
 class WSHandlerFactory:
     def __init__(self, comm):
@@ -49,21 +76,23 @@ class WSHandlerFactory:
 class Communicator:
     def __init__(self):
         self.objects = {}
+        self.messages = {}
         self.ws_handler_f = WSHandlerFactory(self)
     
-    def set_listen_port(self, port):
-        self.ws_l = websockets.serve(self.ws_handler_f.server_message_loop,
-                                     'localhost', port,
-                                     extensions=[
-                                         permessage_deflate.ServerPerMessageDeflateFactory(
-                                             server_max_window_bits=15,
-                                             client_max_window_bits=15
-                                         ),
-                                     ],)
-
     def add_object(self, o, object_id):
         self.objects[object_id] = o
 
+    def set_listen_port(self, port):
+        self.ws_l = websockets.serve(self.ws_handler_f.server_message_loop,
+                                     'localhost', port)
+
+
+    async def get_ptr(self, ptr_base_type, ws_url, object_id):
+        ptr_type = ptrs_map[ptr_base_type]
+        ws_handler = WSHandler(self)
+        self.ws_l = await ws_handler.client_message_loop(ws_url)
+        return ptr_type(ws_handler, object_id)
+    
     async def do_call__(self, message_json, ws):
         try:
             args = message_json['args']
