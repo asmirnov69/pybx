@@ -1,28 +1,18 @@
-import typing
-import enum
+from __future__ import annotations 
+import typing, enum, dataclasses
 import dipole_idl
-
-"""
-if 1:
-    # to be defined in libdipole.py
-    class struct: pass
-    ObjectPtr = typing._alias(object, typing.T, inst = False)
-"""
-
-class HelloCB: [] # forward declaration
-HelloCBPtr = dipole_idl.ObjectPtr[HelloCB]
-#HelloCBPtrSeq = typing.List[HelloCBPtr]
 
 class Color(enum.Enum):
     NORMAL = 0
     RED = enum.auto()
     GREEN = enum.auto()
 
-class Greetings(dipole_idl.struct):
+@dataclasses.dataclass
+class Greetings:
     language: str
     text: str
     color: Color
-
+    
 GreetingsSeq = typing.List[Greetings]
 
 class Hello(dipole_idl.interface):
@@ -32,3 +22,7 @@ class Hello(dipole_idl.interface):
    
 class HelloCB(dipole_idl.interface):
     def confirmHello(self, hello: str) -> str: []
+
+HelloCBPtr = dipole_idl.ObjectPtr[HelloCB]
+#HelloCBPtrSeq = typing.List[HelloCBPtr]
+

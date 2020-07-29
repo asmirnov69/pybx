@@ -34,6 +34,21 @@ def verify2(fn):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     print(module)
+
+@fuargs.action
+def verify3(fn):
+    mod = os.path.basename(fn).split(".")[0]
+    mod_path = os.path.expanduser(os.path.dirname(fn))
+    sys.path.append(mod_path)
+    print(mod_path, mod)
+    res = exec(f"import {mod}")
+    print(res)
+
+@fuargs.action
+def parse(fn):
+    out_fd = sys.stdout
+    module_defs = codegen.parse_all_modules(fn)
+    module_defs.dump()
     
 @fuargs.action
 def gen_cpp(fn, out_fn = None):

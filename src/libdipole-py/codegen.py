@@ -146,7 +146,8 @@ class StructDef:
 def parse_dipole_interface(node):
     interface_def = None
     if isinstance(node, ast.ClassDef):
-        if len(node.bases) == 1: # otherwise it is forward declaration
+        #ipdb.set_trace()
+        if len(node.bases) == 1:
             if node.bases[0].value.id == 'dipole_idl' and node.bases[0].attr == 'interface':
                 interface_def = InterfaceDef(node.name)
                 print("parse_dipole_interface: ", node.name)
@@ -179,11 +180,6 @@ def parse_dipole_interface(node):
                         
                     #ipdb.set_trace()
                     interface_def.methods.append(m_def)
-        else:
-            if node.body[0].value.elts == []:
-                pass
-            else:
-                raise Exception("forward class declaration body is not empty")
             
     return interface_def
 
@@ -206,8 +202,9 @@ def parse_dipole_typedef(node):
 def parse_dipole_struct(node):
     struct_def = None
     if isinstance(node, ast.ClassDef):
-        if len(node.bases) == 1: # otherwise it is forward declaration
-            if node.bases[0].value.id == 'dipole_idl' and node.bases[0].attr == 'struct':
+        if hasattr(node, 'decorator_list') and len(node.decorator_list) > 0:
+            #ipdb.set_trace()
+            if node.decorator_list[0].attr == 'dataclass':
                 struct_def = StructDef(node.name)
                 for m in node.body:
                     if not isinstance(m, ast.AnnAssign):
@@ -314,7 +311,7 @@ def parse_all_modules(fn):
         if import_fn == None:
             raise Exception(f"can't find file for import module {import_name}")
         new_module_defs = parse_module(import_fn)
-        new_module_defs.dump()
+        #new_module_defs.dump()
         module_defs.merge(new_module_defs)
         nested_modules.extend(new_module_defs.imports)
         processed_modules.add(import_name)

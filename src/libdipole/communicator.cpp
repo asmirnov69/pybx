@@ -12,7 +12,7 @@ using namespace std;
 
 void Dipole::ws_send(shared_ptr<ix::WebSocket> ws, const string& msg)
 {
-  auto send_ret = ws->sendBinary(msg);
+  auto send_ret = ws->send(msg);
   if (send_ret.success == false) {
     cout << "send failed: " << ws << endl;
     throw runtime_error("Dipole::ws_send: send failed");

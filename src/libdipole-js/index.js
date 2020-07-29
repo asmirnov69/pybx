@@ -56,18 +56,21 @@ export class Communicator
 		}
 	    };
 
+	    // ixWebSocket::sendBinary causes event object to have e.data
+	    // to be usable only via e.data.text() promise, so c++ code
+	    // switched to use ixWebSocket::send
 	    this.ws.onmessage = (e) => {
-		e.data.text().then(e_data => {
-		    console.log(`WS message: ${e_data}`);
-		    let message = JSON.parse(e_data);
-		    if (message['message-type'] == 'method-call-return') {
-			let [resolve, reject] = this.messages.get(message['orig-message-id']);
-			let ret = message.retval.ret;
-			resolve(ret);
-		    } else if (message['message-type'] == 'method-call-exception') {
-			let [resolve, reject] = this.messages.get(message['orig-message-id']);
-			reject(message['remote-exception-text']);
-		    } else if (message['message-type'] == 'method-call') {
+		let e_data = e.data;
+		console.log(`WS message: ${e_data}`);
+		let message = JSON.parse(e_data);
+		if (message['message-type'] == 'method-call-return') {
+		    let [resolve, reject] = this.messages.get(message['orig-message-id']);
+		    let ret = message.retval.ret;
+		    resolve(ret);
+		} else if (message['message-type'] == 'method-call-exception') {
+		    let [resolve, reject] = this.messages.get(message['orig-message-id']);
+		    reject(message['remote-exception-text']);
+		} else if (message['message-type'] == 'method-call') {
 			let o = this.objects.get((message['object-id']));
 			let method = message['method-signature'];
 			let args = message['args'];
@@ -81,10 +84,8 @@ export class Communicator
 			    }
 			};
 			this.ws.send(JSON.stringify(res_message));
-		    }
-		});
-	    };
-			     
+		}
+	    };	    			     
 	});
     }
 };
