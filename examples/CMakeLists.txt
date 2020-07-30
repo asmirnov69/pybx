@@ -1,4 +1,4 @@
 project(examples)
 
-add_subdirectory(simplest.dpl)
+add_subdirectory(simplest)
 

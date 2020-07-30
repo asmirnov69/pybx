@@ -28,6 +28,7 @@ Question on python async mothod override: https://stackoverflow.com/questions/52
 - socket closure should unlock all waiters who would be left hang indefinetly
 - timeout implementation
 - codegen module should have better type/typedefs support
+- json object factory for python and js -- learn/python/json/struct-descriptor.py for some ideas on dflt ctor of python dataclasses
 - pointers arg passing and returns should be handled for all cases
 - better Dipole exceptions
 - typescript support

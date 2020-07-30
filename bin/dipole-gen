@@ -1,10 +1,11 @@
 #!/usr/local/anaconda3/bin/python
-
+import ipdb
 import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import ast
 import codegen, codegen_cpp, codegen_js
+import dipole
 
 @fuargs.action
 def ast_dump(fn):
@@ -13,10 +14,10 @@ def ast_dump(fn):
     print(ast.dump(pt))
 
 @fuargs.action
-def verify(fn):
+def verify(fn, mod_name):
     import types
     import importlib.machinery
-    loader = importlib.machinery.SourceFileLoader('a_b', fn)
+    loader = importlib.machinery.SourceFileLoader(mod_name, fn)
     mod = types.ModuleType(loader.name)
     loader.exec_module(mod)
     print(mod)
@@ -43,7 +44,25 @@ def verify3(fn):
     print(mod_path, mod)
     res = exec(f"import {mod}")
     print(res)
+    
+@fuargs.action
+def verify4(mod_name, fn):
+    my_module = {} 
+    exec(open(fn).read(), my_module)
+    code = f"""class __{mod_name}:
+    def __init__(self, adict):
+        self.__dict__.update(adict)
+{mod_name} = __{mod_name}(my_module)
+    """
+    exec(code)
+    ret = eval(f"{mod_name}")
+    ipdb.set_trace()
 
+@fuargs.action
+def verify5(fn):
+    mod = dipole.import_pyidl(fn)
+    print(mod)
+    
 @fuargs.action
 def parse(fn):
     out_fd = sys.stdout

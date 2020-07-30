@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// generated code: source - ./examples/simplest.dpl/backend/backend_idl.py
+// generated code: source - ./backend_idl.py
 #ifndef __BACKEND_IDL_STUBS_HH__
 #define __BACKEND_IDL_STUBS_HH__
 

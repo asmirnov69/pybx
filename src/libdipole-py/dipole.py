@@ -1,4 +1,5 @@
 import ipdb
+import importlib.machinery, os.path
 import websockets, asyncio, uuid
 import json, dataclasses, enum, inspect
 import dipole_idl
@@ -6,6 +7,19 @@ import dipole_idl
 ptrs_map = {}
 ptrs_map2 = {}
 
+def import_pyidl(fn):
+    my_module = {}
+    mod_name = os.path.basename(fn).split(".")[0]
+    print(f"loading {mod_name} from {fn}")
+    exec(open(fn).read(), my_module)
+    code = f"""class __{mod_name}:
+    def __init__(self, adict):
+        self.__dict__.update(adict)
+{mod_name} = __{mod_name}(my_module)
+    """
+    exec(code)    
+    return eval(f"{mod_name}")
+    
 def build(idl_mod):
     gen_code = ""
     interface_classes = []

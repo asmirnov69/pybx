@@ -1,4 +1,4 @@
-project(simplest.dpl)
+project(simplest)
 
 add_subdirectory(backend)
 

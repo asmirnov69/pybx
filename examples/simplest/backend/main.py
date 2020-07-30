@@ -2,7 +2,8 @@ import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import asyncio, dipole
-import backend_idl
+#import backend_idl
+backend_idl = dipole.import_pyidl("./backend_idl.py")
 
 class HelloI(backend_idl.Hello):
     def __init__(self):
