@@ -2,6 +2,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 import replace from 'rollup-plugin-replace';
+import postcss from 'rollup-plugin-postcss';
 
 // `npm run build` -> `production` is true
 // `npm run dev` -> `production` is false
@@ -25,7 +26,12 @@ export default {
 		'node_modules/react-dom/index.js': ['unstable_batchedUpdates', 'findDOMNode', 'createPortal'],
 		'node_modules/prop-types/index.js': ['shape', 'instanceOf', 'node', 'object', 'string', 'func', 'bool', 'oneOfType', 'number', 'arrayOf', 'oneOf', 'any', 'elementType', 'array'],
 	    },
-	}), // converts date-fns to ES modules
+	}),
+	postcss({
+	    plugins: []
+	})
+
+	// converts date-fns to ES modules
 	//production && terser() // minify, but only in production
     ]
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Grid, Table, TableHeaderRow } from '@devexpress/dx-react-grid-bootstrap4';
-//import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
+import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
 import * as libdipole from 'libdipole-js';
 import * as Blotter from './Blotter.js';
