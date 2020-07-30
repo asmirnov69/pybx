@@ -1,7 +1,7 @@
 // -*- c++ -*-
-// generated code: source - ./backend_idl.py
-#ifndef __BACKEND_IDL_STUBS_HH__
-#define __BACKEND_IDL_STUBS_HH__
+// generated code: source - ./backend.pyidl
+#ifndef __BACKEND_STUBS_HH__
+#define __BACKEND_STUBS_HH__
 
 #define TOKENPASTE(x, y) x ## y
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)

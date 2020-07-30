@@ -2,7 +2,7 @@
 using namespace std;
 
 #include <libdipole-cpp/communicator.h>
-#include "backend_idl.h"
+#include "backend.h"
 #include "HelloI.h"
 
 int main()

@@ -1,0 +1,13 @@
+from __future__ import annotations 
+import typing, enum, dataclasses
+import dipole_idl
+
+StringSeq = typing.List[str]
+
+@dataclasses.dataclass
+class DataFrame:
+    columns: StringSeq
+    dataframeJSON: str
+
+class DFTest(dipole_idl.interface):
+    def get_df(self) -> DataFrame: []

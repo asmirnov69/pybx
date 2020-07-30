@@ -3,7 +3,7 @@ import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import asyncio, dipole, uuid, json
-import backend_idl
+backend_idl = dipole.import_pyidl("./backend.pyidl")
 dipole.build_ptrs(backend_idl)
 #gen_code = dipole.build(backend_idl)
 ##print(gen_code)

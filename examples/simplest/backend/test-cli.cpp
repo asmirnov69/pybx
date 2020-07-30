@@ -3,7 +3,7 @@ using namespace std;
 
 #include <kvan/fuargs.h>
 #include <libdipole-cpp/communicator.h>
-#include "backend_idl.h"
+#include "backend.h"
 #include "HelloI.h"
 
 ADD_ACTION("test_call[]", [](const Fuargs::args&) {

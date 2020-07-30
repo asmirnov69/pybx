@@ -1,5 +1,5 @@
 //
-// generated code: source - ./examples/simplest.dpl/backend/backend_idl.py
+// generated code: source - ./backend.pyidl
 import * as libdipole from 'libdipole-js';
     
 export class Greetings {
