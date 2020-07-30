@@ -1,6 +1,16 @@
 import React from 'react';
+import { Grid, Table, TableHeaderRow } from '@devexpress/dx-react-grid-bootstrap4';
+//import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
+
 import * as libdipole from 'libdipole-js';
 import * as Blotter from './Blotter.js';
+
+const columns = [{ name: 'id', title: 'ID' },
+		 { name: 'product', title: 'Product' },
+		 { name: 'owner', title: 'Owner' }];
+const rows = [{ id: 0, product: 'DevExtreme', owner: 'DevExpress' },
+	      { id: 1, product: 'DevExtreme Reactive', owner: 'DevExpress' }
+	     ];
 
 class App extends React.Component {
     constructor(props) {
@@ -29,6 +39,13 @@ class App extends React.Component {
 	return (<div>
 		<h1>{this.state.blotter}</h1>
 		<button ref={r => this.pb = r} onClick={this.onClick}>PRESS</button>
+		<div className="card">
+		<Grid rows={rows} columns={columns}>
+		<Table />
+		<TableHeaderRow />
+		</Grid>
+		</div>
+		
 	       </div>);
     }
 };
