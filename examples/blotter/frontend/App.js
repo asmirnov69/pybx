@@ -11,14 +11,9 @@ import * as Blotter from './Blotter.js';
 
 function App() {
     let comm = new libdipole.Communicator();
-    const [columns, setColumns] = useState([{ name: 'id', title: 'ID' },
-				{ name: 'product', title: 'Product' },
-				{ name: 'owner', title: 'Owner' }]);
-    const [rows] = useState([{ id: 0, product: 'DevExtreme', owner: 'DevExpress' },
-			     { id: 1, product: 'DevExtreme Reactive', owner: 'DevExpress' }
-			    ]);
-
-    const [columnOrder, setColumnOrder] = useState(['id', 'product', 'owner']);
+    const [columns, setColumns] = useState([]);
+    const [rows, setRows] = useState([]);
+    const [columnOrder, setColumnOrder] = useState([]);
 
     let blotter_ptr;
     React.useEffect(() => {
@@ -36,6 +31,9 @@ function App() {
     const onClick = () => {
 	blotter_ptr.get_df().then(df_json => {
 	    console.log("onClick:", df_json);
+	    setColumns(df_json.retval.columns.map(x => { return {name: x}; }));
+	    setColumnOrder(df_json.retval.columns);
+	    setRows(JSON.parse(df_json.retval.dataframeJSON));
 	});
     }
     

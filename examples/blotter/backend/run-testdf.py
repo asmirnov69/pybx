@@ -10,7 +10,7 @@ class DFTestI(Blotter.DFTest):
         df = pd.DataFrame({'a': range(10)})
         df['b'] = 'hi'
         print(df)
-        sret = Blotter.DataFrame(columns = list(df.columns), dataframeJSON = df.to_json())
+        sret = Blotter.DataFrame(columns = list(df.columns), dataframeJSON = df.to_json(orient = 'records'))
         ret = {'retval': sret}
         return ret
 
