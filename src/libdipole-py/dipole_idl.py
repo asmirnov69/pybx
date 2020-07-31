@@ -24,7 +24,7 @@ def generate_ptr_class_code(interface_class):
         print(f"        message_id = message_json['message-id']", file = out)
         print(f"        result_fut = asyncio.Future()", file = out)
         print(f"        loop = asyncio.get_event_loop()", file = out)
-        print(f"        self.ws_handler.comm.messages[message_id] = (result_fut, loop)", file = out)
+        print(f"        self.ws_handler.comm.add_call_waiter__(message_id, result_fut, loop)", file = out)
         print(f"        res_message_json = await result_fut", file = out)
         print(f"        return res_message_json['retval']['ret']", file = out)
 

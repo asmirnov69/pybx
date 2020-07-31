@@ -1,12 +1,14 @@
 import ipdb
 import importlib.machinery, os.path
-import websockets, asyncio, uuid
+import websockets, asyncio, threading, uuid
 import json, dataclasses, enum, inspect
 import dipole_idl
 
 ptrs_map = {}
 ptrs_map2 = {}
 
+# see also https://stackoverflow.com/q/51575294/1181482
+#
 def import_pyidl(fn):
     my_module = {}
     mod_name = os.path.basename(fn).split(".")[0]
@@ -20,7 +22,7 @@ def import_pyidl(fn):
     exec(code)    
     return eval(f"{mod_name}")
     
-def build(idl_mod):
+def build_ptr_code(idl_mod):
     gen_code = ""
     interface_classes = []
     for mod_el in idl_mod.__dict__.values():
@@ -31,7 +33,7 @@ def build(idl_mod):
     return (interface_classes, gen_code)
 
 def build_ptrs(backend_idl):
-    interface_classes, gen_code = build(backend_idl)
+    interface_classes, gen_code = build_ptr_code(backend_idl)
     exec(gen_code)
     print(ptrs_map)
     #ipdb.set_trace()
@@ -73,7 +75,7 @@ class WSHandler:
             except Exception as e:
                 print("recv() failed with exception", type(e))
                 print(e)
-                if isinstance(e, websockets.exceptions.ConnectionClosedError):
+                if isinstance(e, websockets.exceptions.ConnectionClosedError) or isinstance(e, websockets.exceptions.ConnectionClosedOK):
                     await self.ws.close()
                     break
                 continue
@@ -83,7 +85,7 @@ class WSHandler:
                 await self.comm.do_call__(message_json, self.ws)
             elif message_json['message-type'] in ['method-call-return', 'method-call-exception']:
                 orig_message_id = message_json['orig-message-id']
-                result_fut, loop = self.comm.messages[orig_message_id]
+                result_fut, loop = self.comm.get_call_waiter__(orig_message_id)
                 loop.call_soon_threadsafe(set_result_f, [result_fut, message_json])
             else:
                 print("run_message_loop: unknown message type:", message_json)
@@ -101,12 +103,15 @@ class WSHandlerFactory:
 
 class Communicator:
     def __init__(self):
-        self.objects = {}
-        self.messages = {}
+        self.objects_lock = threading.Lock()
+        self.objects__ = {}
+        self.messages_lock = threading.Lock()
+        self.messages__ = {}
         self.ws_handler_f = WSHandlerFactory(self)
     
     def add_object(self, o, object_id):
-        self.objects[object_id] = o
+        with self.objects_lock:
+            self.objects__[object_id] = o
 
     def set_listen_port(self, port):
         self.ws_l = websockets.serve(self.ws_handler_f.server_message_loop,
@@ -118,6 +123,14 @@ class Communicator:
         ws_handler = WSHandler(self)
         self.ws_l = await ws_handler.client_message_loop(ws_url)
         return ptr_type(ws_handler, object_id)
+
+    def add_call_waiter__(self, message_id, fut, loop):
+        with self.messages_lock:
+            self.messages__[message_id] = (fut, loop)
+    
+    def get_call_waiter__(self, orig_message_id):        
+        with self.messages_lock:
+            return self.messages__.pop(orig_message_id)
     
     async def do_call__(self, message_json, ws):
         try:
@@ -126,9 +139,10 @@ class Communicator:
             method = method_signature.split("__")[1]
             object_id = message_json['object-id']
             print("looking up obj", object_id)
-            if not object_id in self.objects:
-                raise Exception("do_message_action: can't find object", object_id)
-            obj = self.objects[object_id]
+            with self.objects_lock:
+                if not object_id in self.objects__:
+                    raise Exception("do_message_action: can't find object", object_id)
+                obj = self.objects__[object_id]
             b_method = getattr(obj, method)
             if b_method == None:
                 raise Exception("do_message_action: can't find method", method, object_id)

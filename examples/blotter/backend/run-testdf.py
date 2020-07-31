@@ -5,13 +5,28 @@ import dipole, pandas as pd
 Blotter = dipole.import_pyidl("./Blotter.pyidl")
 dipole.build_ptrs(Blotter)
 
+cities = [
+    ['Boston', 'MA'],
+    ['Worcester', 'MA'],
+    ['New York', 'NY'],
+    ['Albany', 'NY']
+]
+
 class DFTestI(Blotter.DFTest):
+    def __init__(self):
+        self.df = pd.DataFrame.from_records(cities, columns = ['city', 'state'])
+        self.df['temp'] = 25
+        self.c = 0
+
+    def update(self):
+        print("DFTestI::update", self.c)
+        self.c += 1
+        self.df['temp'] = self.df.temp - 0.1
+        
     async def get_df(self):
-        df = pd.DataFrame({'a': range(10)})
-        df['b'] = 'hi'
-        print(df)
-        sret = Blotter.DataFrame(columns = list(df.columns), dataframeJSON = df.to_json(orient = 'records'))
+        sret = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
         ret = {'retval': sret}
+        self.update()
         return ret
 
 async def test_coro():
