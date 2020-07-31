@@ -1,5 +1,5 @@
 import React from 'react';
-import * as libdipole from 'libdipole-js';
+import * as libpybx from 'libpybx-js';
 import * as backend from './backend.js';
 
 class HelloCBI extends backend.HelloCB {
@@ -12,7 +12,7 @@ class HelloCBI extends backend.HelloCB {
 class App extends React.Component {
     constructor(props) {
 	super(props);
-	this.comm = new libdipole.Communicator();
+	this.comm = new libpybx.Communicator();
 	this.state = {greeting: 'none', greeting2: 'none'};
 	this.onClick = this.onClick.bind(this);
     }

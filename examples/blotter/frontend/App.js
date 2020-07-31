@@ -14,11 +14,11 @@ import { Grid,
        } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
-import * as libdipole from 'libdipole-js';
+import * as libpybx from 'libpybx-js';
 import * as Blotter from './Blotter.js';
 
 function App() {
-    let comm = new libdipole.Communicator();
+    let comm = new libpybx.Communicator();
     const blotter_ptr = useRef(null);
     const [update_c, set_update_c] = useState(0);
     const [columns, setColumns] = useState([]);

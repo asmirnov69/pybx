@@ -5,7 +5,7 @@ from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import ast
 import codegen, codegen_cpp, codegen_js
-import dipole
+import pybx
 
 @fuargs.action
 def ast_dump(fn):
@@ -60,7 +60,7 @@ def verify4(mod_name, fn):
 
 @fuargs.action
 def verify5(fn):
-    mod = dipole.import_pyidl(fn)
+    mod = pybx.import_pybx(fn)
     print(mod)
     
 @fuargs.action

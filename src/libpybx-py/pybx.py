@@ -2,14 +2,14 @@ import ipdb
 import importlib.machinery, os.path
 import websockets, asyncio, threading, uuid
 import json, dataclasses, enum, inspect
-import dipole_idl
+import pybx_idl
 
 ptrs_map = {}
 ptrs_map2 = {}
 
 # see also https://stackoverflow.com/q/51575294/1181482
 #
-def import_pyidl(fn):
+def import_pybx(fn):
     my_module = {}
     mod_name = os.path.basename(fn).split(".")[0]
     print(f"loading {mod_name} from {fn}")
@@ -26,9 +26,9 @@ def build_ptr_code(idl_mod):
     gen_code = ""
     interface_classes = []
     for mod_el in idl_mod.__dict__.values():
-        if inspect.isclass(mod_el) and issubclass(mod_el, dipole_idl.interface):
+        if inspect.isclass(mod_el) and issubclass(mod_el, pybx_idl.interface):
             interface_classes.append(mod_el)
-            gen_code += dipole_idl.generate_ptr_class_code(mod_el)
+            gen_code += pybx_idl.generate_ptr_class_code(mod_el)
     print(gen_code)
     return (interface_classes, gen_code)
 

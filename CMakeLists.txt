@@ -1,4 +1,4 @@
-project(dipole-all-projects)
+project(pybx-all-projects)
 exec_program(git ARGS "rev-parse --show-toplevel" OUTPUT_VARIABLE top)
 
 set(YAJL_HOME /usr/local/philotymic/3rdparty)

@@ -5,7 +5,7 @@
 using namespace std;
 
 #include <kvan/uuid.h>
-#include <libdipole-cpp/proto.h>
+#include <libpybx-cpp/proto.h>
 
 static atomic<int> max_message_id{0};
 

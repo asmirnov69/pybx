@@ -1,6 +1,6 @@
 //
-// generated code: source - ./backend.pyidl
-import * as libdipole from 'libdipole-js';
+// generated code: source - ../backend/backend.pybx
+import * as libpybx from 'libpybx-js';
     
 export class Greetings {
   constructor(language, text, color) {
@@ -21,7 +21,7 @@ export class HelloPtr {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
-               'message-id': libdipole.generateQuickGuid(),
+               'message-id': libpybx.generateQuickGuid(),
                'object-id': this.o_ptr.object_id,
               'method-signature': 'Hello__sayHello',
           'args': {
@@ -39,7 +39,7 @@ export class HelloPtr {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
-               'message-id': libdipole.generateQuickGuid(),
+               'message-id': libpybx.generateQuickGuid(),
                'object-id': this.o_ptr.object_id,
               'method-signature': 'Hello__reformatGreetings',
           'args': {
@@ -61,7 +61,7 @@ export class HelloPtr {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
-               'message-id': libdipole.generateQuickGuid(),
+               'message-id': libpybx.generateQuickGuid(),
                'object-id': this.o_ptr.object_id,
               'method-signature': 'Hello__register_hello_cb',
           'args': {
@@ -86,7 +86,7 @@ export class HelloCBPtr {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
-               'message-id': libdipole.generateQuickGuid(),
+               'message-id': libpybx.generateQuickGuid(),
                'object-id': this.o_ptr.object_id,
               'method-signature': 'HelloCB__confirmHello',
           'args': {

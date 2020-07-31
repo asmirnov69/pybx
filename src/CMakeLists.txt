@@ -1,4 +1,4 @@
-project(libdipole-src)
+project(libpybx-src)
 
-add_subdirectory(libdipole-cpp)
+add_subdirectory(libpybx-cpp)
 

@@ -2,10 +2,10 @@ import ipdb
 import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import asyncio, dipole, uuid, json
-backend_idl = dipole.import_pyidl("./backend.pyidl")
-dipole.build_ptrs(backend_idl)
-#gen_code = dipole.build(backend_idl)
+import asyncio, pybx, uuid, json
+backend_idl = pybx.import_pybx("./backend.pybx")
+pybx.build_ptrs(backend_idl)
+#gen_code = pybx.build(backend_idl)
 ##print(gen_code)
 #exec(gen_code)
 
@@ -35,13 +35,13 @@ class HelloPtr:
         print("res_message_json:", res_message_json)
         return res_message_json
         
-dipole.ptrs_map[backend_idl.Hello] = HelloPtr
+pybx.ptrs_map[backend_idl.Hello] = HelloPtr
 #end of generated code
 """
 
 async def a_run_client():
     #ipdb.set_trace()
-    comm = dipole.Communicator()
+    comm = pybx.Communicator()
     hello_ptr = await comm.get_ptr(backend_idl.Hello, "ws://localhost:8080/", "hello")
 
     g = await hello_ptr.sayHello("hi")

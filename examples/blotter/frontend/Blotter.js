@@ -1,6 +1,6 @@
 //
-// generated code: source - ../backend/Blotter.pyidl
-import * as libdipole from 'libdipole-js';
+// generated code: source - ../backend/Blotter.pybx
+import * as libpybx from 'libpybx-js';
     
 export class DataFrame {
   constructor(columns, dataframeJSON) {
@@ -24,7 +24,7 @@ export class DFTestPtr {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
-               'message-id': libdipole.generateQuickGuid(),
+               'message-id': libpybx.generateQuickGuid(),
                'object-id': this.o_ptr.object_id,
               'method-signature': 'DFTest__get_df',
           'args': {

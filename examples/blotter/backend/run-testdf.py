@@ -1,10 +1,10 @@
 import sys, asyncio
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import dipole, pandas as pd, threading, time
+import pybx, pandas as pd, threading, time
 import random
-Blotter = dipole.import_pyidl("./Blotter.pyidl")
-dipole.build_ptrs(Blotter)
+Blotter = pybx.import_pybx("./Blotter.pybx")
+pybx.build_ptrs(Blotter)
 
 cities = [
     ['Boston', 'MA'],
@@ -40,7 +40,7 @@ class DFTestI(Blotter.DFTest):
             return ret
 
 async def test_coro():
-    comm = dipole.Communicator()
+    comm = pybx.Communicator()
     testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
     df = await testdf_ptr.get_df()
@@ -57,7 +57,7 @@ def test():
 @fuargs.action
 def run():
     port = 8080
-    comm = dipole.Communicator()
+    comm = pybx.Communicator()
     comm.set_listen_port(port)
 
     test_o = DFTestI()

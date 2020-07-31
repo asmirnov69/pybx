@@ -1,9 +1,9 @@
 import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import asyncio, dipole
+import asyncio, pybx
 #import backend_idl
-backend_idl = dipole.import_pyidl("./backend.pyidl")
+backend_idl = pybx.import_pybx("./backend.pybx")
 
 class HelloI(backend_idl.Hello):
     def __init__(self):
@@ -31,7 +31,7 @@ class HelloI(backend_idl.Hello):
 @fuargs.action
 def run_server():
     port = 8080
-    comm = dipole.Communicator()
+    comm = pybx.Communicator()
     comm.set_listen_port(port)
 
     hello_o = HelloI()

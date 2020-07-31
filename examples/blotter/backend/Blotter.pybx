@@ -1,7 +1,7 @@
 # -*- python -*-
 from __future__ import annotations 
 import typing, enum, dataclasses
-import dipole_idl
+import pybx_idl
 
 StringSeq = typing.List[str]
 
@@ -15,5 +15,5 @@ class DFWUPC:
     df: DataFrame
     update_c: int
 
-class DFTest(dipole_idl.interface):
+class DFTest(pybx_idl.interface):
     def get_df(self) -> DFWUPC: []

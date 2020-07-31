@@ -143,14 +143,14 @@ class StructDef:
         self.name = name
         self.members = [] # List[StructMemberDef]
 
-def parse_dipole_interface(node):
+def parse_pybx_interface(node):
     interface_def = None
     if isinstance(node, ast.ClassDef):
         #ipdb.set_trace()
         if len(node.bases) == 1:
-            if node.bases[0].value.id == 'dipole_idl' and node.bases[0].attr == 'interface':
+            if node.bases[0].value.id == 'pybx_idl' and node.bases[0].attr == 'interface':
                 interface_def = InterfaceDef(node.name)
-                print("parse_dipole_interface: ", node.name)
+                print("parse_pybx_interface: ", node.name)
                 for el in node.body:
                     if not isinstance(el, ast.FunctionDef):
                         raise Exception("interface expected to have methods only")
@@ -183,14 +183,14 @@ def parse_dipole_interface(node):
             
     return interface_def
 
-def parse_dipole_typedef(node):
+def parse_pybx_typedef(node):
     typedef_def = None
     if isinstance(node, ast.Assign):
         if len(node.targets) == 1:
             if isinstance(node.targets[0], ast.Name):
                 typedef_target = node.targets[0].id
         if isinstance(node.value, ast.Subscript):
-            if node.value.value.value.id == 'dipole_idl' and node.value.value.attr == 'ObjectPtr':
+            if node.value.value.value.id == 'pybx_idl' and node.value.value.attr == 'ObjectPtr':
                 typedef_def = TypedefDef(typedef_target, 'ObjectPtr', node.value.slice.value.id)
             elif node.value.value.value.id == 'typing' and node.value.value.attr == 'List':
                 typedef_def = TypedefDef(typedef_target, 'List', node.value.slice.value.id)
@@ -199,7 +199,7 @@ def parse_dipole_typedef(node):
 
     return typedef_def
 
-def parse_dipole_struct(node):
+def parse_pybx_struct(node):
     struct_def = None
     if isinstance(node, ast.ClassDef):
         if hasattr(node, 'decorator_list') and len(node.decorator_list) > 0:
@@ -208,13 +208,13 @@ def parse_dipole_struct(node):
                 struct_def = StructDef(node.name)
                 for m in node.body:
                     if not isinstance(m, ast.AnnAssign):
-                        raise Exception(f"parse_dipole_struct: unexpected member at line {m.lineno}")
+                        raise Exception(f"parse_pybx_struct: unexpected member at line {m.lineno}")
                     struct_def.members.append(StructMemberDef(m.target.id, Type(m.annotation.id)))
                         
     
     return struct_def
 
-def parse_dipole_enumdef(node):
+def parse_pybx_enumdef(node):
     enumdef_def = None
     if isinstance(node, ast.ClassDef):
         if len(node.bases) == 1: # otherwise it is forward declaration
@@ -235,8 +235,8 @@ def parse_dipole_enumdef(node):
     
     return enumdef_def
 
-def parse_module(pyidl_fn):
-    source_code = "\n".join(open(pyidl_fn).readlines())
+def parse_module(pybx_fn):
+    source_code = "\n".join(open(pybx_fn).readlines())
 
     #print source_code[:100]
     pt = ast.parse(source_code)
@@ -265,25 +265,25 @@ def parse_module(pyidl_fn):
         if isinstance(node, ast.Import):
             for n in node.names:
                 if n.name.find("_idl") != -1:
-                    if n.name != 'dipole_idl':
+                    if n.name != 'pybx_idl':
                         raise Exception(f"'import {n.name}' is not supported, use 'from {n.name} import *' instead")
         
-        interface_def = parse_dipole_interface(node)
+        interface_def = parse_pybx_interface(node)
         if interface_def:
             interface_defs.append(interface_def)
             continue
 
-        struct_def = parse_dipole_struct(node)
+        struct_def = parse_pybx_struct(node)
         if struct_def:
             struct_defs.append(struct_def)
             continue
         
-        typedef_def = parse_dipole_typedef(node)
+        typedef_def = parse_pybx_typedef(node)
         if typedef_def:
             typedef_defs.append(typedef_def)
             continue
 
-        enum_def = parse_dipole_enumdef(node)
+        enum_def = parse_pybx_enumdef(node)
         if enum_def:
             enum_defs.append(enum_def)
             continue

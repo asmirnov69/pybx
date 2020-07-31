@@ -1,5 +1,5 @@
 import typing, inspect, io
-# dipole primitive definitions
+# pybx primitive definitions
 
 class interface: pass
 ObjectPtr = typing._alias(object, typing.T, inst = False)

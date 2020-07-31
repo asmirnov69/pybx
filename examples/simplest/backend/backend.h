@@ -1,5 +1,5 @@
 // -*- c++ -*-
-// generated code: source - ./backend.pyidl
+// generated code: source - ./backend.pybx
 #ifndef __BACKEND_STUBS_HH__
 #define __BACKEND_STUBS_HH__
 
@@ -13,9 +13,9 @@
 using namespace std;
 
 #include <kvan/json-io.h>
-#include <libdipole-cpp/communicator.h>
-#include <libdipole-cpp/proto.h>
-#include <libdipole-cpp/remote-methods.h>
+#include <libpybx-cpp/communicator.h>
+#include <libpybx-cpp/proto.h>
+#include <libpybx-cpp/remote-methods.h>
     
 enum class Color {
 NORMAL = 0,

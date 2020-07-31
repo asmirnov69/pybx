@@ -1,9 +1,9 @@
 import ipdb
 
-def generate_prolog(source_pyidl_fn, out_fd):
+def generate_prolog(source_pybx_fn, out_fd):
     prolog_code = f"""//
-// generated code: source - {source_pyidl_fn}
-import * as libdipole from 'libdipole-js';
+// generated code: source - {source_pybx_fn}
+import * as libpybx from 'libpybx-js';
     """
     print(prolog_code, file = out_fd)
 
@@ -37,7 +37,7 @@ def generate_interface_client_declarations(interface_def, typedefs, out_fd):
         print("    let p = new Promise((resolve, reject) => {", file = out_fd)
         print("         let call_req = {", file = out_fd)
         print("               'message-type': 'method-call',", file = out_fd)
-        print("               'message-id': libdipole.generateQuickGuid(),", file = out_fd)
+        print("               'message-id': libpybx.generateQuickGuid(),", file = out_fd)
         print("               'object-id': this.o_ptr.object_id,", file = out_fd)
         print(f"              'method-signature': '{m_signature}',", file = out_fd)
         print("          'args': {", file = out_fd)
@@ -89,8 +89,8 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"{m_def.method_name}({args}) {{throw new Error(\"not implemented\");}}", file = out_fd)
     print("};", file = out_fd)
     
-def generate_js_file(source_pyidl_fn, module_def, out_fd):
-    generate_prolog(source_pyidl_fn, out_fd)
+def generate_js_file(source_pybx_fn, module_def, out_fd):
+    generate_prolog(source_pybx_fn, out_fd)
 
     #for enum_def in module_def.enums:
     #    generate_enum_def(enum_def, out_fd)

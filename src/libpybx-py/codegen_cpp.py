@@ -2,10 +2,10 @@ import ipdb
 import os.path
 from codegen import *
 
-def generate_prolog(source_pyidl_fn, out_fd):
-    macro_lock_s = os.path.basename(source_pyidl_fn).split(".")[0].upper()
+def generate_prolog(source_pybx_fn, out_fd):
+    macro_lock_s = os.path.basename(source_pybx_fn).split(".")[0].upper()
     prolog_code = f"""// -*- c++ -*-
-// generated code: source - {source_pyidl_fn}
+// generated code: source - {source_pybx_fn}
 #ifndef __{macro_lock_s}_STUBS_HH__
 #define __{macro_lock_s}_STUBS_HH__
 
@@ -19,9 +19,9 @@ def generate_prolog(source_pyidl_fn, out_fd):
 using namespace std;
 
 #include <kvan/json-io.h>
-#include <libdipole-cpp/communicator.h>
-#include <libdipole-cpp/proto.h>
-#include <libdipole-cpp/remote-methods.h>
+#include <libpybx-cpp/communicator.h>
+#include <libpybx-cpp/proto.h>
+#include <libpybx-cpp/remote-methods.h>
     """
     print(prolog_code, file = out_fd)
 
@@ -309,8 +309,8 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     print("}", file = out_fd)
     print(f"UNIQUE = Dipole::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
 
-def generate_cpp_file(source_pyidl_fn, module_def, out_fd):
-    generate_prolog(source_pyidl_fn, out_fd)
+def generate_cpp_file(source_pybx_fn, module_def, out_fd):
+    generate_prolog(source_pybx_fn, out_fd)
 
     for enum_def in module_def.enums:
         generate_enum_def(enum_def, out_fd)

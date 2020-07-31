@@ -1,7 +1,7 @@
 #include <iostream>
 using namespace std;
 
-#include <libdipole-cpp/communicator.h>
+#include <libpybx-cpp/communicator.h>
 #include "backend.h"
 #include "HelloI.h"
 
