@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
+import {
+  GroupingState,
+  IntegratedGrouping,
+} from '@devexpress/dx-react-grid';
 import { Grid,
 	 Table,
 	 TableHeaderRow,
+	 GroupingPanel,
 	 DragDropProvider,
-	 TableColumnReordering} from '@devexpress/dx-react-grid-bootstrap4';
+	 Toolbar,
+	 TableColumnReordering,
+         TableGroupRow
+       } from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
 import * as libdipole from 'libdipole-js';
@@ -40,10 +48,15 @@ function App() {
     return (<div>
 	    <div className="card">
 	    <Grid rows={rows} columns={columns}>
+	    <GroupingState />
 	    <DragDropProvider />
+	    <IntegratedGrouping />
 	    <Table />
 	    <TableHeaderRow />
+	    <TableGroupRow />
 	    <TableColumnReordering order={columnOrder} onOrderChange={setColumnOrder} />
+	    <Toolbar />
+            <GroupingPanel />
 	    </Grid>
 	    </div>
 	    <button onClick={onClick}>PRESS</button>
