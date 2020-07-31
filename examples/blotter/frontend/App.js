@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   GroupingState,
   IntegratedGrouping,
@@ -19,25 +19,21 @@ import * as Blotter from './Blotter.js';
 
 function App() {
     let comm = new libdipole.Communicator();
+    const blotter_ptr = useRef(null);
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
     const [columnOrder, setColumnOrder] = useState([]);
 
-    let blotter_ptr;
     React.useEffect(() => {
 	let ws_url = "ws://localhost:8080/";
 	let object_id = "test_df";	
 	comm.connect(ws_url, object_id).then(o_ptr => {
-	    blotter_ptr = new Blotter.DFTestPtr(o_ptr);
-	    return blotter_ptr.get_df();
-	}).then(df_json => {
-	    console.log("server response:", df_json);
-	    //this.setState({...this.state, blotter: df_json.retval.dataframeJSON});
+	    blotter_ptr.current = new Blotter.DFTestPtr(o_ptr);
 	});
-    });
+    }, []);
 
     const onClick = () => {
-	blotter_ptr.get_df().then(df_json => {
+	blotter_ptr.current.get_df().then(df_json => {
 	    console.log("onClick:", df_json);
 	    setColumns(df_json.retval.columns.map(x => { return {name: x}; }));
 	    setColumnOrder(df_json.retval.columns);

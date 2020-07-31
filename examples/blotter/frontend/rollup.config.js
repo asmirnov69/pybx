@@ -22,7 +22,7 @@ export default {
 	commonjs({
 	    namedExports: {		
 		'node_modules/react-is/index.js': ['isFragment'],
-		'node_modules/react/index.js': ['createContext', 'createElement', 'Children', 'PureComponent', 'Component', 'createRef', 'Fragment', 'isValidElement', 'cloneElement', 'memo', 'useCallback', 'forwardRef', 'useState'],
+		'node_modules/react/index.js': ['createContext', 'createElement', 'Children', 'PureComponent', 'Component', 'createRef', 'Fragment', 'isValidElement', 'cloneElement', 'memo', 'useCallback', 'forwardRef', 'useState', 'useRef'],
 		'node_modules/react-dom/index.js': ['unstable_batchedUpdates', 'findDOMNode', 'createPortal'],
 		'node_modules/prop-types/index.js': ['shape', 'instanceOf', 'node', 'object', 'string', 'func', 'bool', 'oneOfType', 'number', 'arrayOf', 'oneOf', 'any', 'elementType', 'array'],
 	    },
