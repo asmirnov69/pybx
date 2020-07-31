@@ -1,11 +1,17 @@
 //
-// generated code: source - ../../blotter/backend/Blotter.pyidl
+// generated code: source - ../backend/Blotter.pyidl
 import * as libdipole from 'libdipole-js';
     
 export class DataFrame {
   constructor(columns, dataframeJSON) {
     this.columns = columns;
     this.dataframeJSON = dataframeJSON;
+  }
+};
+export class DFWUPC {
+  constructor(df, update_c) {
+    this.df = df;
+    this.update_c = update_c;
   }
 };
 export class DFTestPtr {
@@ -28,7 +34,7 @@ export class DFTestPtr {
       this.o_ptr.ws.send(JSON.stringify(call_req));
    });
  return p.then(ret => {
- let tret = new DataFrame(); Object.assign(tret, ret);
+ let tret = new DFWUPC(); Object.assign(tret, ret);
   return tret; });
   }
 };

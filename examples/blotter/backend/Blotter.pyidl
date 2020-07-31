@@ -1,3 +1,4 @@
+# -*- python -*-
 from __future__ import annotations 
 import typing, enum, dataclasses
 import dipole_idl
@@ -9,5 +10,10 @@ class DataFrame:
     columns: StringSeq
     dataframeJSON: str
 
+@dataclasses.dataclass
+class DFWUPC:
+    df: DataFrame
+    update_c: int
+
 class DFTest(dipole_idl.interface):
-    def get_df(self) -> DataFrame: []
+    def get_df(self) -> DFWUPC: []

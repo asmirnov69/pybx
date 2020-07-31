@@ -1,7 +1,8 @@
 import sys, asyncio
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import dipole, pandas as pd
+import dipole, pandas as pd, threading, time
+import random
 Blotter = dipole.import_pyidl("./Blotter.pyidl")
 dipole.build_ptrs(Blotter)
 
@@ -14,20 +15,29 @@ cities = [
 
 class DFTestI(Blotter.DFTest):
     def __init__(self):
+        self.df_lock = threading.Lock()
         self.df = pd.DataFrame.from_records(cities, columns = ['city', 'state'])
         self.df['temp'] = 25
         self.c = 0
 
-    def update(self):
-        print("DFTestI::update", self.c)
-        self.c += 1
-        self.df['temp'] = self.df.temp - 0.1
+    # see about data race example and GIL role -> https://stackoverflow.com/a/33435680/1181482
+    def update_thread(self):
+        while 1:
+            with self.df_lock:
+                print("DFTestI::update", self.c)
+                for ii, rr in self.df.iterrows():
+                    incr = (random.random() - 0.5) * 0.45
+                    if abs(incr) > 0.1:
+                        self.c += 1
+                        self.df.loc[ii, 'temp'] = rr['temp'] + incr
+            time.sleep(2)
         
     async def get_df(self):
-        sret = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
-        ret = {'retval': sret}
-        self.update()
-        return ret
+        with self.df_lock:
+            df_ret = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
+            sret = Blotter.DFWUPC(df = df_ret, update_c = self.c)
+            ret = {'retval': sret}
+            return ret
 
 async def test_coro():
     comm = dipole.Communicator()
@@ -35,7 +45,7 @@ async def test_coro():
 
     df = await testdf_ptr.get_df()
     print("dataframe:", df)
-    df = pd.read_json(df['retval']['dataframeJSON'])
+    df = pd.read_json(df['retval']['df']['dataframeJSON'])
     print("dataframe:", df)
     
 @fuargs.action
@@ -52,6 +62,9 @@ def run():
 
     test_o = DFTestI()
     comm.add_object(test_o, "test_df")
+    t = threading.Thread(target = test_o.update_thread)
+    t.daemon = True
+    t.start()
 
     print("python server start")
     asyncio.get_event_loop().run_until_complete(comm.ws_l)

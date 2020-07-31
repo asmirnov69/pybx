@@ -20,6 +20,7 @@ import * as Blotter from './Blotter.js';
 function App() {
     let comm = new libdipole.Communicator();
     const blotter_ptr = useRef(null);
+    const [update_c, set_update_c] = useState(0);
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
     const [columnOrder, setColumnOrder] = useState([]);
@@ -35,9 +36,10 @@ function App() {
     const onClick = () => {
 	blotter_ptr.current.get_df().then(df_json => {
 	    console.log("onClick:", df_json);
-	    setColumns(df_json.retval.columns.map(x => { return {name: x}; }));
-	    setColumnOrder(df_json.retval.columns);
-	    setRows(JSON.parse(df_json.retval.dataframeJSON));
+	    set_update_c(df_json.retval.update_c);
+	    setColumns(df_json.retval.df.columns.map(x => { return {name: x}; }));
+	    setColumnOrder(df_json.retval.df.columns);
+	    setRows(JSON.parse(df_json.retval.df.dataframeJSON));
 	});
     }
     
@@ -55,6 +57,7 @@ function App() {
             <GroupingPanel />
 	    </Grid>
 	    </div>
+	    <h1>{update_c}</h1>
 	    <button onClick={onClick}>PRESS</button>
 	    </div>);
 }
