@@ -3,7 +3,7 @@ import { Grid,
 	 Table,
 	 TableHeaderRow,
 	 DragDropProvider,
-	 TableColumnReordering } from '@devexpress/dx-react-grid-bootstrap4';
+	 TableColumnReordering} from '@devexpress/dx-react-grid-bootstrap4';
 import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
 import * as libdipole from 'libdipole-js';
@@ -42,10 +42,8 @@ function App() {
 	    <Grid rows={rows} columns={columns}>
 	    <DragDropProvider />
 	    <Table />
-	    <TableColumnReordering order={columnOrder}
-	    onOrderChange={setColumnOrder}
-	    />
 	    <TableHeaderRow />
+	    <TableColumnReordering order={columnOrder} onOrderChange={setColumnOrder} />
 	    </Grid>
 	    </div>
 	    <button onClick={onClick}>PRESS</button>

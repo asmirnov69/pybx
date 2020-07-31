@@ -18,6 +18,8 @@
     "@devexpress/dx-react-core": "^2.7.0",
     "@devexpress/dx-react-grid": "^2.7.0",
     "@devexpress/dx-react-grid-bootstrap4": "^2.7.0",
+    "@icon/open-iconic": "^1.1.1-alpha.3",
+    "bootstrap": "^4.5.0",
     "libdipole-js": "file:../../../src/libdipole-js",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
