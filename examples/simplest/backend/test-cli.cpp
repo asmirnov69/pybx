@@ -7,7 +7,7 @@ using namespace std;
 #include "HelloI.h"
 
 ADD_ACTION("test_call[]", [](const Fuargs::args&) {
-    Dipole::Communicator comm;
+    pybx::Communicator comm;
     HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
     
     cout << "start" << endl;
@@ -28,7 +28,7 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
     
     try {
       Greetings gg = hello_ptr.sayHello("HI");
-    } catch (Dipole::RemoteException& rex) {
+    } catch (pybx::RemoteException& rex) {
       cout << "remote exception caught: " << rex.what() << endl;
     }
 
@@ -36,7 +36,7 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
   });
 
 ADD_ACTION("test_cb[]", [](const Fuargs::args&) {
-    Dipole::Communicator comm;
+    pybx::Communicator comm;
     HelloPtr hello_ptr = comm.get_ptr<Hello>("ws://localhost:8080/", "hello");
 
     auto hellocb_o = make_shared<HelloCBI>();

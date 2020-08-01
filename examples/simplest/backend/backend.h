@@ -61,15 +61,15 @@ class HelloCBPtr;
 typedef vector<Greetings> GreetingsSeq;
 class HelloPtr {
 private:
-  Dipole::Communicator* comm{nullptr};
+  pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
   std::string ws_url;
   HelloPtr();
-  HelloPtr(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  HelloPtr(Dipole::Communicator* comm, const std::string& object_id);
-  void activate(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
+  HelloPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  HelloPtr(pybx::Communicator* comm, const std::string& object_id);
+  void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   Greetings sayHello(std::string weSay);
   GreetingsSeq reformatGreetings(GreetingsSeq gs);
   std::string register_hello_cb(HelloCBPtr cb);
@@ -84,15 +84,15 @@ template <> inline StructDescriptor get_struct_descriptor<HelloPtr>()
 }
 class HelloCBPtr {
 private:
-  Dipole::Communicator* comm{nullptr};
+  pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
   std::string ws_url;
   HelloCBPtr();
-  HelloCBPtr(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  HelloCBPtr(Dipole::Communicator* comm, const std::string& object_id);
-  void activate(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
+  HelloCBPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  HelloCBPtr(pybx::Communicator* comm, const std::string& object_id);
+  void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   std::string confirmHello(std::string hello);
 };
 template <> inline StructDescriptor get_struct_descriptor<HelloCBPtr>()
@@ -103,14 +103,14 @@ template <> inline StructDescriptor get_struct_descriptor<HelloCBPtr>()
  };
  return sd;
 }
-class Hello : public Dipole::Object {
+class Hello : public pybx::Object {
 public:
  typedef HelloPtr ptr;
  virtual Greetings sayHello(std::string weSay) = 0;
  virtual GreetingsSeq reformatGreetings(GreetingsSeq gs) = 0;
  virtual std::string register_hello_cb(HelloCBPtr cb) = 0;
 };
-struct Hello__sayHello : public Dipole::method_impl
+struct Hello__sayHello : public pybx::method_impl
 {
  struct args_t {
  std::string weSay;
@@ -127,9 +127,9 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__sayHello::args_
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<Hello__sayHello::args_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Hello__sayHello::args_t>>()
 {
- return get_StructDescriptor_T<Hello__sayHello::args_t, Dipole::Request>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__sayHello::args_t, pybx::Request>::get_struct_descriptor();
 }
 template <> inline StructDescriptor get_struct_descriptor<Hello__sayHello::return_t>()
 {
@@ -138,11 +138,11 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__sayHello::retur
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<Hello__sayHello::return_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Response<Hello__sayHello::return_t>>()
 {
- return get_StructDescriptor_T<Hello__sayHello::return_t, Dipole::Response>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__sayHello::return_t, pybx::Response>::get_struct_descriptor();
 }
-struct Hello__reformatGreetings : public Dipole::method_impl
+struct Hello__reformatGreetings : public pybx::method_impl
 {
  struct args_t {
  GreetingsSeq gs;
@@ -159,9 +159,9 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__reformatGreetin
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<Hello__reformatGreetings::args_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Hello__reformatGreetings::args_t>>()
 {
- return get_StructDescriptor_T<Hello__reformatGreetings::args_t, Dipole::Request>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__reformatGreetings::args_t, pybx::Request>::get_struct_descriptor();
 }
 template <> inline StructDescriptor get_struct_descriptor<Hello__reformatGreetings::return_t>()
 {
@@ -170,11 +170,11 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__reformatGreetin
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<Hello__reformatGreetings::return_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Response<Hello__reformatGreetings::return_t>>()
 {
- return get_StructDescriptor_T<Hello__reformatGreetings::return_t, Dipole::Response>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__reformatGreetings::return_t, pybx::Response>::get_struct_descriptor();
 }
-struct Hello__register_hello_cb : public Dipole::method_impl
+struct Hello__register_hello_cb : public pybx::method_impl
 {
  struct args_t {
  HelloCBPtr cb;
@@ -191,9 +191,9 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__register_hello_
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<Hello__register_hello_cb::args_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Hello__register_hello_cb::args_t>>()
 {
- return get_StructDescriptor_T<Hello__register_hello_cb::args_t, Dipole::Request>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__register_hello_cb::args_t, pybx::Request>::get_struct_descriptor();
 }
 template <> inline StructDescriptor get_struct_descriptor<Hello__register_hello_cb::return_t>()
 {
@@ -202,16 +202,16 @@ template <> inline StructDescriptor get_struct_descriptor<Hello__register_hello_
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<Hello__register_hello_cb::return_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Response<Hello__register_hello_cb::return_t>>()
 {
- return get_StructDescriptor_T<Hello__register_hello_cb::return_t, Dipole::Response>::get_struct_descriptor();
+ return get_StructDescriptor_T<Hello__register_hello_cb::return_t, pybx::Response>::get_struct_descriptor();
 }
-class HelloCB : public Dipole::Object {
+class HelloCB : public pybx::Object {
 public:
  typedef HelloCBPtr ptr;
  virtual std::string confirmHello(std::string hello) = 0;
 };
-struct HelloCB__confirmHello : public Dipole::method_impl
+struct HelloCB__confirmHello : public pybx::method_impl
 {
  struct args_t {
  std::string hello;
@@ -228,9 +228,9 @@ template <> inline StructDescriptor get_struct_descriptor<HelloCB__confirmHello:
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<HelloCB__confirmHello::args_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Request<HelloCB__confirmHello::args_t>>()
 {
- return get_StructDescriptor_T<HelloCB__confirmHello::args_t, Dipole::Request>::get_struct_descriptor();
+ return get_StructDescriptor_T<HelloCB__confirmHello::args_t, pybx::Request>::get_struct_descriptor();
 }
 template <> inline StructDescriptor get_struct_descriptor<HelloCB__confirmHello::return_t>()
 {
@@ -239,14 +239,14 @@ template <> inline StructDescriptor get_struct_descriptor<HelloCB__confirmHello:
  };
  return sd;
 }
-template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<HelloCB__confirmHello::return_t>>()
+template <> inline StructDescriptor get_struct_descriptor<pybx::Response<HelloCB__confirmHello::return_t>>()
 {
- return get_StructDescriptor_T<HelloCB__confirmHello::return_t, Dipole::Response>::get_struct_descriptor();
+ return get_StructDescriptor_T<HelloCB__confirmHello::return_t, pybx::Response>::get_struct_descriptor();
 }
 inline HelloPtr::HelloPtr()
 {
 }
-inline HelloPtr::HelloPtr(Dipole::Communicator* comm,
+inline HelloPtr::HelloPtr(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -255,12 +255,12 @@ const std::string& ws_url, const std::string& object_id)
  this->ws_url = ws_url;
  this->object_id = object_id;
 }
-inline HelloPtr::HelloPtr(Dipole::Communicator* comm, const std::string& object_id)
+inline HelloPtr::HelloPtr(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void HelloPtr::activate(Dipole::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void HelloPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
@@ -276,9 +276,9 @@ inline void HelloPtr::activate(Dipole::Communicator* c, std::shared_ptr<ix::WebS
 inline Greetings HelloPtr::sayHello(std::string weSay)
 {
 
-    Dipole::Request<Hello__sayHello::args_t> req{
-    .message_type = Dipole::message_type_t::METHOD_CALL,
-      .message_id = Dipole::create_new_message_id(),
+    pybx::Request<Hello__sayHello::args_t> req{
+    .message_type = pybx::message_type_t::METHOD_CALL,
+      .message_id = pybx::create_new_message_id(),
       .method_signature = "Hello__sayHello",
       .object_id = object_id,
       .args = Hello__sayHello::args_t()
@@ -289,11 +289,11 @@ inline Greetings HelloPtr::sayHello(std::string weSay)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    Dipole::ws_send(ws, json_os.str());
+    pybx::ws_send(ws, json_os.str());
     auto res_s = comm->wait_for_response(req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
-    Dipole::Response<Hello__sayHello::return_t> res;
+    pybx::Response<Hello__sayHello::return_t> res;
     from_json(&res, res_s.second);
     ret = res.retval.retval;
     return ret;
@@ -302,9 +302,9 @@ inline Greetings HelloPtr::sayHello(std::string weSay)
 inline GreetingsSeq HelloPtr::reformatGreetings(GreetingsSeq gs)
 {
 
-    Dipole::Request<Hello__reformatGreetings::args_t> req{
-    .message_type = Dipole::message_type_t::METHOD_CALL,
-      .message_id = Dipole::create_new_message_id(),
+    pybx::Request<Hello__reformatGreetings::args_t> req{
+    .message_type = pybx::message_type_t::METHOD_CALL,
+      .message_id = pybx::create_new_message_id(),
       .method_signature = "Hello__reformatGreetings",
       .object_id = object_id,
       .args = Hello__reformatGreetings::args_t()
@@ -315,11 +315,11 @@ inline GreetingsSeq HelloPtr::reformatGreetings(GreetingsSeq gs)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    Dipole::ws_send(ws, json_os.str());
+    pybx::ws_send(ws, json_os.str());
     auto res_s = comm->wait_for_response(req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
-    Dipole::Response<Hello__reformatGreetings::return_t> res;
+    pybx::Response<Hello__reformatGreetings::return_t> res;
     from_json(&res, res_s.second);
     ret = res.retval.retval;
     return ret;
@@ -328,9 +328,9 @@ inline GreetingsSeq HelloPtr::reformatGreetings(GreetingsSeq gs)
 inline std::string HelloPtr::register_hello_cb(HelloCBPtr cb)
 {
 
-    Dipole::Request<Hello__register_hello_cb::args_t> req{
-    .message_type = Dipole::message_type_t::METHOD_CALL,
-      .message_id = Dipole::create_new_message_id(),
+    pybx::Request<Hello__register_hello_cb::args_t> req{
+    .message_type = pybx::message_type_t::METHOD_CALL,
+      .message_id = pybx::create_new_message_id(),
       .method_signature = "Hello__register_hello_cb",
       .object_id = object_id,
       .args = Hello__register_hello_cb::args_t()
@@ -341,11 +341,11 @@ inline std::string HelloPtr::register_hello_cb(HelloCBPtr cb)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    Dipole::ws_send(ws, json_os.str());
+    pybx::ws_send(ws, json_os.str());
     auto res_s = comm->wait_for_response(req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
-    Dipole::Response<Hello__register_hello_cb::return_t> res;
+    pybx::Response<Hello__register_hello_cb::return_t> res;
     from_json(&res, res_s.second);
     ret = res.retval.retval;
     return ret;
@@ -354,7 +354,7 @@ inline std::string HelloPtr::register_hello_cb(HelloCBPtr cb)
 inline HelloCBPtr::HelloCBPtr()
 {
 }
-inline HelloCBPtr::HelloCBPtr(Dipole::Communicator* comm,
+inline HelloCBPtr::HelloCBPtr(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -363,12 +363,12 @@ const std::string& ws_url, const std::string& object_id)
  this->ws_url = ws_url;
  this->object_id = object_id;
 }
-inline HelloCBPtr::HelloCBPtr(Dipole::Communicator* comm, const std::string& object_id)
+inline HelloCBPtr::HelloCBPtr(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void HelloCBPtr::activate(Dipole::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void HelloCBPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
@@ -384,9 +384,9 @@ inline void HelloCBPtr::activate(Dipole::Communicator* c, std::shared_ptr<ix::We
 inline std::string HelloCBPtr::confirmHello(std::string hello)
 {
 
-    Dipole::Request<HelloCB__confirmHello::args_t> req{
-    .message_type = Dipole::message_type_t::METHOD_CALL,
-      .message_id = Dipole::create_new_message_id(),
+    pybx::Request<HelloCB__confirmHello::args_t> req{
+    .message_type = pybx::message_type_t::METHOD_CALL,
+      .message_id = pybx::create_new_message_id(),
       .method_signature = "HelloCB__confirmHello",
       .object_id = object_id,
       .args = HelloCB__confirmHello::args_t()
@@ -397,11 +397,11 @@ inline std::string HelloCBPtr::confirmHello(std::string hello)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    Dipole::ws_send(ws, json_os.str());
+    pybx::ws_send(ws, json_os.str());
     auto res_s = comm->wait_for_response(req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
-    Dipole::Response<HelloCB__confirmHello::return_t> res;
+    pybx::Response<HelloCB__confirmHello::return_t> res;
     from_json(&res, res_s.second);
     ret = res.retval.retval;
     return ret;
@@ -412,7 +412,7 @@ inline void Hello__sayHello::do_call(const string& req_s, string* res_s, shared_
 
     ostringstream res_os;
     try {
-      Dipole::Request<args_t> req;
+      pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       
@@ -423,15 +423,15 @@ inline void Hello__sayHello::do_call(const string& req_s, string* res_s, shared_
         throw runtime_error("dyn type mismatch");
       }
 
-      Dipole::Response<return_t> res;
-      res.message_id = Dipole::create_new_message_id();
+      pybx::Response<return_t> res;
+      res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       res.retval.retval = self->sayHello(req.args.weSay);
       to_json(res_os, res);
     } catch (exception& e) {
-      Dipole::ExceptionResponse eres;
-      eres.message_id = Dipole::create_new_message_id();
-      eres.orig_message_id = Dipole::get_message_id(req_s);
+      pybx::ExceptionResponse eres;
+      eres.message_id = pybx::create_new_message_id();
+      eres.orig_message_id = pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }
@@ -439,13 +439,13 @@ inline void Hello__sayHello::do_call(const string& req_s, string* res_s, shared_
     *res_s = res_os.str();
     
 }
-UNIQUE = Dipole::RemoteMethods::register_method("Hello__sayHello", std::make_shared<Hello__sayHello>());
+UNIQUE = pybx::RemoteMethods::register_method("Hello__sayHello", std::make_shared<Hello__sayHello>());
 inline void Hello__reformatGreetings::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
     ostringstream res_os;
     try {
-      Dipole::Request<args_t> req;
+      pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       
@@ -456,15 +456,15 @@ inline void Hello__reformatGreetings::do_call(const string& req_s, string* res_s
         throw runtime_error("dyn type mismatch");
       }
 
-      Dipole::Response<return_t> res;
-      res.message_id = Dipole::create_new_message_id();
+      pybx::Response<return_t> res;
+      res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       res.retval.retval = self->reformatGreetings(req.args.gs);
       to_json(res_os, res);
     } catch (exception& e) {
-      Dipole::ExceptionResponse eres;
-      eres.message_id = Dipole::create_new_message_id();
-      eres.orig_message_id = Dipole::get_message_id(req_s);
+      pybx::ExceptionResponse eres;
+      eres.message_id = pybx::create_new_message_id();
+      eres.orig_message_id = pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }
@@ -472,13 +472,13 @@ inline void Hello__reformatGreetings::do_call(const string& req_s, string* res_s
     *res_s = res_os.str();
     
 }
-UNIQUE = Dipole::RemoteMethods::register_method("Hello__reformatGreetings", std::make_shared<Hello__reformatGreetings>());
+UNIQUE = pybx::RemoteMethods::register_method("Hello__reformatGreetings", std::make_shared<Hello__reformatGreetings>());
 inline void Hello__register_hello_cb::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
     ostringstream res_os;
     try {
-      Dipole::Request<args_t> req;
+      pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       req.args.cb.activate(comm, ws);
@@ -489,15 +489,15 @@ inline void Hello__register_hello_cb::do_call(const string& req_s, string* res_s
         throw runtime_error("dyn type mismatch");
       }
 
-      Dipole::Response<return_t> res;
-      res.message_id = Dipole::create_new_message_id();
+      pybx::Response<return_t> res;
+      res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       res.retval.retval = self->register_hello_cb(req.args.cb);
       to_json(res_os, res);
     } catch (exception& e) {
-      Dipole::ExceptionResponse eres;
-      eres.message_id = Dipole::create_new_message_id();
-      eres.orig_message_id = Dipole::get_message_id(req_s);
+      pybx::ExceptionResponse eres;
+      eres.message_id = pybx::create_new_message_id();
+      eres.orig_message_id = pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }
@@ -505,13 +505,13 @@ inline void Hello__register_hello_cb::do_call(const string& req_s, string* res_s
     *res_s = res_os.str();
     
 }
-UNIQUE = Dipole::RemoteMethods::register_method("Hello__register_hello_cb", std::make_shared<Hello__register_hello_cb>());
+UNIQUE = pybx::RemoteMethods::register_method("Hello__register_hello_cb", std::make_shared<Hello__register_hello_cb>());
 inline void HelloCB__confirmHello::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
 
     ostringstream res_os;
     try {
-      Dipole::Request<args_t> req;
+      pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       
@@ -522,15 +522,15 @@ inline void HelloCB__confirmHello::do_call(const string& req_s, string* res_s, s
         throw runtime_error("dyn type mismatch");
       }
 
-      Dipole::Response<return_t> res;
-      res.message_id = Dipole::create_new_message_id();
+      pybx::Response<return_t> res;
+      res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       res.retval.retval = self->confirmHello(req.args.hello);
       to_json(res_os, res);
     } catch (exception& e) {
-      Dipole::ExceptionResponse eres;
-      eres.message_id = Dipole::create_new_message_id();
-      eres.orig_message_id = Dipole::get_message_id(req_s);
+      pybx::ExceptionResponse eres;
+      eres.message_id = pybx::create_new_message_id();
+      eres.orig_message_id = pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }
@@ -538,5 +538,5 @@ inline void HelloCB__confirmHello::do_call(const string& req_s, string* res_s, s
     *res_s = res_os.str();
     
 }
-UNIQUE = Dipole::RemoteMethods::register_method("HelloCB__confirmHello", std::make_shared<HelloCB__confirmHello>());
+UNIQUE = pybx::RemoteMethods::register_method("HelloCB__confirmHello", std::make_shared<HelloCB__confirmHello>());
 #endif

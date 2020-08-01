@@ -95,15 +95,15 @@ def generate_interface_client_declarations(interface_def, out_fd):
     class_name = interface_def.name + "Ptr"
     print(f"class {class_name} {{", file = out_fd)
     print("private:", file = out_fd)
-    print("  Dipole::Communicator* comm{nullptr};", file = out_fd)
+    print("  pybx::Communicator* comm{nullptr};", file = out_fd)
     print("  std::shared_ptr<ix::WebSocket> ws;", file = out_fd)
     print("public:", file = out_fd)
     print("  std::string object_id;", file = out_fd)
     print("  std::string ws_url;", file = out_fd)
     print(f"  {class_name}();", file = out_fd)
-    print(f"  {class_name}(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
-    print(f"  {class_name}(Dipole::Communicator* comm, const std::string& object_id);", file = out_fd)
-    print(f"  void activate(Dipole::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);", file = out_fd)
+    print(f"  {class_name}(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
+    print(f"  {class_name}(pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
+    print(f"  void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);", file = out_fd)
     for m_def in interface_def.methods:
         m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
         m_args = ", ".join(m_def.method_args.get_typed_args_list())
@@ -121,7 +121,7 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print("}", file = out_fd)
     
 def generate_interface_server_declarations(interface_def, out_fd):
-    print(f"class {interface_def.name} : public Dipole::Object {{", file = out_fd)
+    print(f"class {interface_def.name} : public pybx::Object {{", file = out_fd)
     print("public:", file = out_fd)
     print(f" typedef {interface_def.name}Ptr ptr;", file = out_fd)
     #ipdb.set_trace()
@@ -136,7 +136,7 @@ def generate_interface_server_declarations(interface_def, out_fd):
         method_impl_class_name = f"{interface_def.name}__{m_def.method_name}"
 
         # method impl class
-        print(f"struct {method_impl_class_name} : public Dipole::method_impl", file = out_fd)
+        print(f"struct {method_impl_class_name} : public pybx::method_impl", file = out_fd)
         print("{", file = out_fd)
         print(" struct args_t {", file = out_fd)
         m_args = ";\n".join(m_def.method_args.get_typed_args_list()) + ";"
@@ -160,9 +160,9 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
         
-        print(f"template <> inline StructDescriptor get_struct_descriptor<Dipole::Request<{method_impl_class_name}::args_t>>()", file = out_fd)
+        print(f"template <> inline StructDescriptor get_struct_descriptor<pybx::Request<{method_impl_class_name}::args_t>>()", file = out_fd)
         print("{", file = out_fd)
-        print(f" return get_StructDescriptor_T<{method_impl_class_name}::args_t, Dipole::Request>::get_struct_descriptor();", file = out_fd)
+        print(f" return get_StructDescriptor_T<{method_impl_class_name}::args_t, pybx::Request>::get_struct_descriptor();", file = out_fd)
         print("}", file = out_fd)
 
         print(f"template <> inline StructDescriptor get_struct_descriptor<{method_impl_class_name}::return_t>()", file = out_fd)
@@ -173,9 +173,9 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
 
-        print(f"template <> inline StructDescriptor get_struct_descriptor<Dipole::Response<{method_impl_class_name}::return_t>>()", file = out_fd)
+        print(f"template <> inline StructDescriptor get_struct_descriptor<pybx::Response<{method_impl_class_name}::return_t>>()", file = out_fd)
         print("{", file = out_fd)
-        print(f" return get_StructDescriptor_T<{method_impl_class_name}::return_t, Dipole::Response>::get_struct_descriptor();", file = out_fd)
+        print(f" return get_StructDescriptor_T<{method_impl_class_name}::return_t, pybx::Response>::get_struct_descriptor();", file = out_fd)
         print("}", file = out_fd)
 
 def generate_interface_client_definitions(interface_def, out_fd):
@@ -183,7 +183,7 @@ def generate_interface_client_definitions(interface_def, out_fd):
     print(f"inline {class_name}::{class_name}()", file = out_fd)
     print("{", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline {class_name}::{class_name}(Dipole::Communicator* comm,", file = out_fd)
+    print(f"inline {class_name}::{class_name}(pybx::Communicator* comm,", file = out_fd)
     print("std::shared_ptr<ix::WebSocket> ws,", file = out_fd)
     print("const std::string& ws_url, const std::string& object_id)", file = out_fd)
     print("{", file = out_fd)
@@ -192,12 +192,12 @@ def generate_interface_client_definitions(interface_def, out_fd):
     print(" this->ws_url = ws_url;", file = out_fd)
     print(" this->object_id = object_id;", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline {class_name}::{class_name}(Dipole::Communicator* comm, const std::string& object_id)", file = out_fd)
+    print(f"inline {class_name}::{class_name}(pybx::Communicator* comm, const std::string& object_id)", file = out_fd)
     print("{", file = out_fd)
     print(" this->comm = comm;", file = out_fd)
     print(" this->object_id = object_id;", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline void {class_name}::activate(Dipole::Communicator* c, std::shared_ptr<ix::WebSocket> ws)", file = out_fd)
+    print(f"inline void {class_name}::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)", file = out_fd)
 
     method_activate_code = f"""
     {{
@@ -225,9 +225,9 @@ def generate_interface_client_method_definition(class_name, m_def, out_fd):
     print(f"inline {m_ret_type} {class_name}::{m_def.method_name}({m_args})", file = out_fd)
     print("{", file = out_fd)
     ptr_method_template = f"""
-    Dipole::Request<{method_impl_class_name}::args_t> req{{
-    .message_type = Dipole::message_type_t::METHOD_CALL,
-      .message_id = Dipole::create_new_message_id(),
+    pybx::Request<{method_impl_class_name}::args_t> req{{
+    .message_type = pybx::message_type_t::METHOD_CALL,
+      .message_id = pybx::create_new_message_id(),
       .method_signature = "{method_impl_class_name}",
       .object_id = object_id,
       .args = {method_impl_class_name}::args_t()
@@ -238,11 +238,11 @@ def generate_interface_client_method_definition(class_name, m_def, out_fd):
   
     ostringstream json_os;
     to_json(json_os, req);  
-    Dipole::ws_send(ws, json_os.str());
+    pybx::ws_send(ws, json_os.str());
     auto res_s = comm->wait_for_response(req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
-    Dipole::Response<{method_impl_class_name}::return_t> res;
+    pybx::Response<{method_impl_class_name}::return_t> res;
     from_json(&res, res_s.second);
     ret = res.retval.retval;
     return ret;
@@ -275,7 +275,7 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     method_impl_do_call_tmpl = f"""
     ostringstream res_os;
     try {{
-      Dipole::Request<args_t> req;
+      pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       {activations_code}
@@ -286,15 +286,15 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
         throw runtime_error("dyn type mismatch");
       }}
 
-      Dipole::Response<return_t> res;
-      res.message_id = Dipole::create_new_message_id();
+      pybx::Response<return_t> res;
+      res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       res.retval.retval = self->{m_def.method_name}({m_args});
       to_json(res_os, res);
     }} catch (exception& e) {{
-      Dipole::ExceptionResponse eres;
-      eres.message_id = Dipole::create_new_message_id();
-      eres.orig_message_id = Dipole::get_message_id(req_s);
+      pybx::ExceptionResponse eres;
+      eres.message_id = pybx::create_new_message_id();
+      eres.orig_message_id = pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }}
@@ -307,7 +307,7 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     print("{", file = out_fd)
     print(method_impl_do_call_tmpl, file = out_fd)
     print("}", file = out_fd)
-    print(f"UNIQUE = Dipole::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
+    print(f"UNIQUE = pybx::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
 
 def generate_cpp_file(source_pybx_fn, module_def, out_fd):
     generate_prolog(source_pybx_fn, out_fd)

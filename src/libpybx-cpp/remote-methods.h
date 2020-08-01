@@ -10,7 +10,7 @@ using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
 
-namespace Dipole {
+namespace pybx {
   class Communicator;
   class method_impl {
     friend class RemoteMethods;

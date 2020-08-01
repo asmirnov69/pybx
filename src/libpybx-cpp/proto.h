@@ -10,7 +10,7 @@ using namespace std;
 #include <kvan/enum-io.h>
 #include <kvan/struct-descriptor.h>
 
-namespace Dipole {
+namespace pybx {
   enum class message_type_t {
     METHOD_CALL = 0, METHOD_CALL_RETURN, METHOD_CALL_EXCEPTION
   };
@@ -46,17 +46,17 @@ namespace Dipole {
 };
 
 template <> inline string
-get_enum_value_string<Dipole::message_type_t>(Dipole::message_type_t t)
+get_enum_value_string<pybx::message_type_t>(pybx::message_type_t t)
 {
   string ret;
   switch (t) {
-  case Dipole::message_type_t::METHOD_CALL:
+  case pybx::message_type_t::METHOD_CALL:
     ret = "method-call";
     break;
-  case Dipole::message_type_t::METHOD_CALL_RETURN:
+  case pybx::message_type_t::METHOD_CALL_RETURN:
     ret = "method-call-return";
     break;
-  case Dipole::message_type_t::METHOD_CALL_EXCEPTION:
+  case pybx::message_type_t::METHOD_CALL_EXCEPTION:
     ret = "method-call-exception";
     break;
   }
@@ -64,14 +64,14 @@ get_enum_value_string<Dipole::message_type_t>(Dipole::message_type_t t)
 }
 
 template <> inline
-void set_enum_value<Dipole::message_type_t>(Dipole::message_type_t* o, const string& v)
+void set_enum_value<pybx::message_type_t>(pybx::message_type_t* o, const string& v)
 {
   if (v == "method-call") {
-    *o = Dipole::message_type_t::METHOD_CALL;
+    *o = pybx::message_type_t::METHOD_CALL;
   } else if (v == "method-call-return") {
-    *o = Dipole::message_type_t::METHOD_CALL_RETURN;
+    *o = pybx::message_type_t::METHOD_CALL_RETURN;
   } else if (v == "method-call-exception") {
-    *o = Dipole::message_type_t::METHOD_CALL_EXCEPTION;
+    *o = pybx::message_type_t::METHOD_CALL_EXCEPTION;
   } else {
     ostringstream m;
     m << "set_enum_value<message_type_t>: uknown value " << v;
@@ -88,9 +88,9 @@ struct get_StructDescriptor_T {
 };
 
 template <class ARGS>
-struct get_StructDescriptor_T<ARGS, Dipole::Request> {
+struct get_StructDescriptor_T<ARGS, pybx::Request> {
   static StructDescriptor get_struct_descriptor() {
-    typedef Dipole::Request<ARGS> st;
+    typedef pybx::Request<ARGS> st;
     static const StructDescriptor sd = {
       make_member_descriptor("message-type", &st::message_type),
       make_member_descriptor("message-id", &st::message_id),
@@ -103,9 +103,9 @@ struct get_StructDescriptor_T<ARGS, Dipole::Request> {
 };
 
 template <class RET>
-struct get_StructDescriptor_T<RET, Dipole::Response> {
+struct get_StructDescriptor_T<RET, pybx::Response> {
   static StructDescriptor get_struct_descriptor() {
-    typedef Dipole::Response<RET> st;
+    typedef pybx::Response<RET> st;
     static const StructDescriptor sd = {
       make_member_descriptor("message-type", &st::message_type),
       make_member_descriptor("message-id", &st::message_id),
@@ -117,9 +117,9 @@ struct get_StructDescriptor_T<RET, Dipole::Response> {
 };  
 
 template <> inline
-StructDescriptor get_struct_descriptor<Dipole::ExceptionResponse>()
+StructDescriptor get_struct_descriptor<pybx::ExceptionResponse>()
 {
-  typedef Dipole::ExceptionResponse st;
+  typedef pybx::ExceptionResponse st;
   static const StructDescriptor sd = {
     make_member_descriptor("message-type", &st::message_type),
     make_member_descriptor("message-id", &st::message_id),
