@@ -72,7 +72,6 @@ def parse(fn):
 @fuargs.action
 def gen_cpp(fn, out_fn = None):
     out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-
     module_defs = codegen.parse_all_modules(fn)
     module_defs.dump()
         
@@ -82,13 +81,21 @@ def gen_cpp(fn, out_fn = None):
 @fuargs.action
 def gen_js(fn, out_fn = None):
     out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-
     module_defs = codegen.parse_all_modules(fn)
     module_defs.dump()
 
     codegen_js.generate_js_file(fn, module_defs, out_fd)
     return 0
-    
+
+@fuargs.action
+def gen_py(fn, out_fn = None):
+    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
+    module_defs = codegen.parse_all_modules(fn)
+    module_defs.dump()
+
+    codegen_py.generate_py_file(fn, module_defs, out_fd)
+    return 0
+
 if __name__ == "__main__":
     fuargs.exec_actions(sys.argv[1:])
     

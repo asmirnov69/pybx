@@ -4,8 +4,7 @@ from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import pybx, pandas as pd, threading
 import random
-Blotter = pybx.import_pybx("./Blotter.pybx")
-pybx.build_ptrs(Blotter)
+import Blotter
 
 class ObserverI(Blotter.Observer):
     async def show(self, df):
@@ -43,17 +42,13 @@ class DFTestI(Blotter.DFTest):
     async def get_df(self):
         with self.df_lock:
             df_ret = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
-            sret = Blotter.DFWUPC(df = df_ret, update_c = self.c)
-            ret = {'retval': sret}
-            return ret
+            return Blotter.DFWUPC(df = df_ret, update_c = self.c)
 
     async def subscribe(self, ptr):
         print("DFTestI::subscribe:", ptr)
         #ipdb.set_trace()
-        ptr_class = getattr(Blotter, ptr['__special_type'].split(".")[1])
-        ptr_o = ptr_class(self.caller_ws_hanlder, ptr['object_id'])
         with self.df_lock:
-            self.subscribers.append(ptr_o)
+            self.subscribers.append(ptr)
 
     async def publish(self):
         with self.df_lock:
@@ -72,25 +67,22 @@ async def test_coro():
 
     df = await testdf_ptr.get_df()
     print("dataframe:", df)
-    df = pd.read_json(df['retval']['df']['dataframeJSON'])
-    print("dataframe:", df)
 
 @fuargs.action
 def test():
     asyncio.get_event_loop().run_until_complete(test_coro())
     
-async def test_subscriber_coro(comm):
+async def test_subscriber_coro():
+    comm = pybx.Communicator()
     testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
     subscriber_o = ObserverI()
-    subscriber_id = comm.add_object(subscriber_o, "uu")
-    subscriber_ptr = Blotter.ObserverPtr(None, subscriber_id)
+    subscriber_ptr = comm.add_object(subscriber_o, "uu")
     await testdf_ptr.subscribe(subscriber_ptr)    
     
 @fuargs.action
 def test_subscriber():
-    comm = pybx.Communicator()
-    asyncio.get_event_loop().run_until_complete(test_subscriber_coro(comm))
+    asyncio.get_event_loop().run_until_complete(test_subscriber_coro())
     asyncio.get_event_loop().run_forever()
     
 async def run_coro():

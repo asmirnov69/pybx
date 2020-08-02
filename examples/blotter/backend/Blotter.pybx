@@ -1,7 +1,7 @@
 # -*- python -*-
 from __future__ import annotations 
 import typing, enum, dataclasses
-import pybx_idl
+import pybx
 
 StringSeq = typing.List[str]
 
@@ -15,12 +15,12 @@ class DFWUPC:
     df: DataFrame
     update_c: int
 
-class DFTest(pybx_idl.interface):
+class DFTest(pybx.interface):
     def get_df(self) -> DFWUPC: []
     def subscribe(self, ptr: ObserverPtr) -> None: []
     
-class Observer(pybx_idl.interface):
+class Observer(pybx.interface):
     def show(self, df: DFWUPC) -> None: []
 
-ObserverPtr = pybx_idl.ObjectPtr[Observer]
+ObserverPtr = pybx.ObjectPtr[Observer]
 
