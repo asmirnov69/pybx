@@ -4,47 +4,52 @@ import websockets, asyncio, threading, uuid
 import json, dataclasses, enum, inspect
 import pybx_idl
 
-ptrs_map = {}
 ptrs_map2 = {}
 
 # see also https://stackoverflow.com/q/51575294/1181482
 #
-def import_pybx(fn):
+def import_pybx(pybx_mod_fn):
     my_module = {}
-    mod_name = os.path.basename(fn).split(".")[0]
-    print(f"loading {mod_name} from {fn}")
-    exec(open(fn).read(), my_module)
-    code = f"""class __{mod_name}:
+    pybx_mod_name = os.path.basename(pybx_mod_fn).split(".")[0]
+    print(f"loading {pybx_mod_name} from {pybx_mod_fn}")
+    exec(open(pybx_mod_fn).read(), my_module)
+    code = f"""
+class pybx_module__{pybx_mod_name}:
     def __init__(self, adict):
         self.__dict__.update(adict)
-{mod_name} = __{mod_name}(my_module)
+{pybx_mod_name} = pybx_module__{pybx_mod_name}(my_module)
     """
     exec(code)    
-    return eval(f"{mod_name}")
+    return eval(f"{pybx_mod_name}")
     
-def build_ptr_code(idl_mod):
+def build_ptr_code(pybx_mod):
     gen_code = ""
     interface_classes = []
-    for mod_el in idl_mod.__dict__.values():
+    for mod_el in pybx_mod.__dict__.values():
         if inspect.isclass(mod_el) and issubclass(mod_el, pybx_idl.interface):
             interface_classes.append(mod_el)
             gen_code += pybx_idl.generate_ptr_class_code(mod_el)
     print(gen_code)
     return (interface_classes, gen_code)
 
-def build_ptrs(backend_idl):
-    interface_classes, gen_code = build_ptr_code(backend_idl)
+def build_ptrs(pybx_mod):
+    interface_classes, gen_code = build_ptr_code(pybx_mod)
     exec(gen_code)
-    print(ptrs_map)
+    print(ptrs_map2)
     #ipdb.set_trace()
     for interface_class in interface_classes:
+        #ipdb.set_trace()
         ptr_class_name = interface_class.__name__ + 'Ptr'
         print(f"defining {ptr_class_name}")
-        setattr(backend_idl, ptr_class_name, ptrs_map2[interface_class.__name__])
-
+        setattr(pybx_mod, ptr_class_name, ptrs_map2[interface_class.__name__])
+        
+class ObjectPtrBase: pass
 class EnhancedJSONEncoder(json.JSONEncoder):
     def default(self, o):
         #print("EnhancedJSONEncoder::default:", o, type(o))
+        if isinstance(o, ObjectPtrBase):
+            type_s = f"{o.__class__.__module__}.{o.__class__.__name__}"
+            return {'__special_type': type_s, 'object_id': o.object_id}
         if dataclasses.is_dataclass(o):
             return dataclasses.asdict(o)
         if isinstance(o, enum.Enum):
@@ -82,7 +87,7 @@ class WSHandler:
 
             message_json = json.loads(message)
             if message_json['message-type'] == 'method-call':
-                await self.comm.do_call__(message_json, self.ws)
+                await self.comm.do_call__(message_json, self)
             elif message_json['message-type'] in ['method-call-return', 'method-call-exception']:
                 orig_message_id = message_json['orig-message-id']
                 result_fut, loop = self.comm.get_call_waiter__(orig_message_id)
@@ -112,16 +117,17 @@ class Communicator:
     def add_object(self, o, object_id):
         with self.objects_lock:
             self.objects__[object_id] = o
+        return object_id
 
-    def set_listen_port(self, port):
-        self.ws_l = websockets.serve(self.ws_handler_f.server_message_loop,
-                                     'localhost', port)
+    def start_server(self, port):
+        return websockets.serve(self.ws_handler_f.server_message_loop,
+                                'localhost', port)
 
-
-    async def get_ptr(self, ptr_base_type, ws_url, object_id):
-        ptr_type = ptrs_map[ptr_base_type]
+    async def get_ptr(self, ptr_object_type, ws_url, object_id):
+        #ipdb.set_trace()
+        ptr_type = ptrs_map2[ptr_object_type.__name__]
         ws_handler = WSHandler(self)
-        self.ws_l = await ws_handler.client_message_loop(ws_url)
+        await ws_handler.client_message_loop(ws_url)
         return ptr_type(ws_handler, object_id)
 
     def add_call_waiter__(self, message_id, fut, loop):
@@ -132,7 +138,7 @@ class Communicator:
         with self.messages_lock:
             return self.messages__.pop(orig_message_id)
     
-    async def do_call__(self, message_json, ws):
+    async def do_call__(self, message_json, ws_handler):
         try:
             args = message_json['args']
             method_signature = message_json['method-signature']
@@ -147,6 +153,7 @@ class Communicator:
             if b_method == None:
                 raise Exception("do_message_action: can't find method", method, object_id)
             print("calling method", b_method)
+            obj.caller_ws_hanlder = ws_handler
             ret = await b_method(**args)
             print("ret:", ret)
             res_message = {'message-type': 'method-call-return',
@@ -161,4 +168,4 @@ class Communicator:
                            'remote-exception-text': str(e)}
 
         print("res_message:", json.dumps(res_message, cls = EnhancedJSONEncoder))
-        await ws.send(json.dumps(res_message, cls = EnhancedJSONEncoder))
+        await ws_handler.ws.send(json.dumps(res_message, cls = EnhancedJSONEncoder))

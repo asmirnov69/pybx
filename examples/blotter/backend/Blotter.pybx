@@ -17,3 +17,10 @@ class DFWUPC:
 
 class DFTest(pybx_idl.interface):
     def get_df(self) -> DFWUPC: []
+    def subscribe(self, ptr: ObserverPtr) -> None: []
+    
+class Observer(pybx_idl.interface):
+    def show(self, df: DFWUPC) -> None: []
+
+ObserverPtr = pybx_idl.ObjectPtr[Observer]
+

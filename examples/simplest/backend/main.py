@@ -32,13 +32,13 @@ class HelloI(backend_idl.Hello):
 def run_server():
     port = 8080
     comm = pybx.Communicator()
-    comm.set_listen_port(port)
+    ws_server_task = comm.start_server(port)
 
     hello_o = HelloI()
     comm.add_object(hello_o, "hello")
 
     print("python server start")
-    asyncio.get_event_loop().run_until_complete(comm.ws_l)
+    asyncio.get_event_loop().run_until_complete(ws_server_task)
     asyncio.get_event_loop().run_forever()
 
 if __name__ == "__main__":
