@@ -25,19 +25,22 @@ export class Communicator
 	    object_id = generateQuickGuid();
 	}
 	this.objects.set(object_id, o);
-	return new ObjectPtr(this, this.ws, object_id);
+	let o_type = o.get_ptr_type();
+	return new o_type(this, this.ws, object_id);
     }
     
     add_message_handler(message_id, cbs) {
 	this.messages.set(message_id, cbs)
     }
     
-    connect(ws_url, object_id) {	
+    get_ptr(interface_type, ws_url, object_id) {	
 	return new Promise((resolve, reject) => {
 	    this.ws = new WebSocket(ws_url);
 	    this.ws.onopen = (e) => {
 		console.log("WS: connection established");
-		let o_ptr = new ObjectPtr(this, this.ws, object_id);
+		let oo = new interface_type();
+		let ptr_type = oo.get_ptr_type();
+		let o_ptr = new ptr_type(this, this.ws, object_id);
 		resolve(o_ptr);
 	    };
 
@@ -89,3 +92,35 @@ export class Communicator
 	});
     }
 };
+
+export class dataclass {
+  constructor() {
+  }
+};
+
+function obj_ptr_replacer(key, value)
+{
+    if (value instanceof ObjectPtr) {
+	return {'__interface_type': value.get_type_name(),
+		'object_id': value.object_id};
+    }
+    return value;
+}
+
+export function to_json_string(o) {
+    return JSON.stringify(o, obj_ptr_replacer);
+}
+
+export function from_json(o, o_json) {
+    if (o instanceof dataclass) {
+	for (let [k, v] of Object.entries(o)) {
+	    console.log(k, o[k], o_json[k]);
+	    if (v instanceof dataclass) {
+		from_json(o[k], o_json[k]);
+	    } else {
+		o[k] = o_json[k];
+	    }
+	}
+    }
+    return o;
+}

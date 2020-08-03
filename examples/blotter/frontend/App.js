@@ -17,6 +17,22 @@ import '@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 import * as libpybx from 'libpybx-js';
 import * as Blotter from './Blotter.js';
 
+class ObserverI extends Blotter.Observer
+{
+    constructor(set_row_func, set_update_c_func) {
+	super();	
+	this.set_row_func = set_row_func;
+	this.set_update_c_func = set_update_c_func;
+    }
+    
+    show(df) {
+	console.log("ObserverI::show:", df);
+	this.set_row_func(df.df.dataframeJSON);
+	this.set_update_c_func(df.update_c);
+    }
+};
+	
+
 function App() {
     let comm = new libpybx.Communicator();
     const blotter_ptr = useRef(null);
@@ -28,18 +44,24 @@ function App() {
     React.useEffect(() => {
 	let ws_url = "ws://localhost:8080/";
 	let object_id = "test_df";	
-	comm.connect(ws_url, object_id).then(o_ptr => {
-	    blotter_ptr.current = new Blotter.DFTestPtr(o_ptr);
+	comm.get_ptr(Blotter.DFTest, ws_url, object_id).then(o_ptr => {
+	    blotter_ptr.current = o_ptr;
+	}).then(() => {
+	    let o_obj = new ObserverI(setRows, set_update_c);
+	    let s_ptr = comm.add_object(o_obj, "aa")
+	    return blotter_ptr.current.subscribe(s_ptr);
+	}).then(() => {
+	    console.log("connection setup is done");
 	});
     }, []);
 
     const onClick = () => {
-	blotter_ptr.current.get_df().then(df_json => {
-	    console.log("onClick:", df_json);
-	    set_update_c(df_json.retval.update_c);
-	    setColumns(df_json.retval.df.columns.map(x => { return {name: x}; }));
-	    setColumnOrder(df_json.retval.df.columns);
-	    setRows(JSON.parse(df_json.retval.df.dataframeJSON));
+	blotter_ptr.current.get_df().then(df => {
+	    console.log("onClick:", df);
+	    set_update_c(df.update_c);
+	    setColumns(df.df.columns.map(x => { return {name: x}; }));
+	    setColumnOrder(df.df.columns);
+	    setRows(df.df.dataframeJSON);
 	});
     }
     
