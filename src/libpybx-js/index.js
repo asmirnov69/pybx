@@ -74,21 +74,22 @@ export class Communicator
 		    let [resolve, reject] = this.messages.get(message['orig-message-id']);
 		    reject(message['remote-exception-text']);
 		} else if (message['message-type'] == 'method-call') {
-			let o = this.objects.get((message['object-id']));
-			let method = message['method-signature'];
-			let args = message['args'];
-			let res = o.__call_method(method, args);
-			let res_message = {
-			    'message-type': 'method-call-return',
-			    'message-id': generateQuickGuid(),
-			    'orig-message-id': message['message-id'],
-			    'retval': {
-				'retval': res
-			    }
-			};
-			this.ws.send(JSON.stringify(res_message));
+		    let o = this.objects.get((message['object-id']));
+		    let method = message['method-signature'];
+		    let args = message['args'];
+		    let res = o.__call_method(method, args);
+		    let res_message = {
+			'message-type': 'method-call-return',
+			'message-id': generateQuickGuid(),
+			'orig-message-id': message['message-id'],
+			'retval': {
+			    'retval': res || null
+			}
+		    };
+		    let send_res = this.ws.send(JSON.stringify(res_message));
+		    //console.log("send_res:", send_res);
 		}
-	    };	    			     
+	    };
 	});
     }
 };

@@ -2,9 +2,107 @@ import ipdb
 import sys, asyncio
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import pybx, pandas as pd, json, threading
-import random
-import Blotter
+import pybx, pybx_type_descriptors as pybx_td, pandas as pd, json, threading
+import random, uuid
+import pybx_json
+Blotter = pybx.import_pybx("./Blotter.pybx")
+
+pybx_td.register_method_descriptor('DFTest__get_df', 'get_df', {}, Blotter.DFWUPC)
+pybx_td.register_method_descriptor('DFTest__subscribe', 'subscribe', {'ptr': Blotter.ObserverPtr}, None)
+pybx_td.register_method_descriptor('Observer__show', 'show', {'df': Blotter.DFWUPC}, None)
+
+DFTestPtr_code = """
+class ptr_impl_DFTest(pybx_td.ptr_impl_base):
+    def __init__(self, comm, ws, object_id):
+        self.comm = comm
+        self.ws = ws
+        self.object_id = object_id
+
+    async def get_df(self):
+        message_json = {
+            'message-type': 'method-call',
+            'method-signature': 'DFTest__get_df',
+            'message-id': str(uuid.uuid1()),
+            'object-id': self.object_id,
+            'args': {}
+        }
+
+        print("send:", message_json)
+        await self.ws.send(json.dumps(message_json))
+        message_id = message_json['message-id']
+        result_fut = asyncio.Future()
+        loop = asyncio.get_event_loop()
+        self.comm.add_call_waiter__(message_id, result_fut, loop)
+
+        res_message_json = await result_fut
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], Blotter.DFWUPC)
+        return ret
+
+    async def subscribe(self, ptr):
+        message_json = {
+            'message-type': 'method-call',
+            'method-signature': 'DFTest__subscribe',
+            'message-id': str(uuid.uuid1()),
+            'object-id': self.object_id,
+            'args': {'ptr': pybx_json.to_json(ptr)}
+        }
+
+        #ipdb.set_trace()
+        print("send:", message_json)
+        await self.ws.send(json.dumps(message_json))
+        message_id = message_json['message-id']
+        result_fut = asyncio.Future()
+        loop = asyncio.get_event_loop()
+        self.comm.add_call_waiter__(message_id, result_fut, loop)
+
+        res_message_json = await result_fut
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], None)
+        return ret
+
+"""
+
+ObserverPtr_code = """
+class ptr_impl_Observer(pybx_td.ptr_impl_base):
+    def __init__(self, comm, ws, object_id):
+        self.comm = comm
+        self.ws = ws
+        self.object_id = object_id
+
+    async def show(self, df):
+        message_json = {
+            'message-type': 'method-call',
+            'method-signature': 'Observer__show',
+            'message-id': str(uuid.uuid1()),
+            'object-id': self.object_id,
+            'args': {'df': pybx_json.to_json(df)}
+        }
+
+        print("send:", message_json)
+        #ipdb.set_trace()
+        await self.ws.send(json.dumps(message_json))
+        message_id = message_json['message-id']
+        result_fut = asyncio.Future()
+        loop = asyncio.get_event_loop()
+        self.comm.add_call_waiter__(message_id, result_fut, loop)
+        
+        res_message_json = await result_fut
+        print('res_message_json:', res_message_json)
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], None)
+        return ret
+"""
+
+new_defs = {}
+exec(DFTestPtr_code, globals(), new_defs)
+pybx_td.register_interface_ptr_type(Blotter.DFTest, new_defs['ptr_impl_DFTest'])
+
+new_defs = {}
+exec(ObserverPtr_code, globals(), new_defs)
+pybx_td.register_interface_ptr_type(Blotter.Observer, new_defs['ptr_impl_Observer'])
+
+ipdb.set_trace()
 
 class ObserverI(Blotter.Observer):
     async def show(self, df):
@@ -58,8 +156,9 @@ class DFTestI(Blotter.DFTest):
                     df_o = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
                     j = Blotter.DFWUPC(df = df_o, update_c = self.c)
                     await ptr.show(j)
-                except:
+                except Exception as e:
                     print("ptr.show failed", ptr)
+                    print(e)
             
 async def test_coro():
     comm = pybx.Communicator()

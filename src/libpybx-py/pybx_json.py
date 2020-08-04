@@ -1,5 +1,5 @@
 import ipdb
-import pybx, pybx_type_descriptors as pybx_td
+import pybx_type_descriptors as pybx_td
 import dataclasses, typing, enum, inspect
 
 def dataclass_to_json(o):
@@ -18,7 +18,7 @@ def to_json__(o):
         ret = dataclass_to_json(o)
     elif isinstance(o, enum.Enum):
         ret = o.name
-    elif isinstance(o, pybx.ptr_impl_base):
+    elif isinstance(o, pybx_td.ptr_impl_base):
         #ipdb.set_trace()
         interface_type = pybx_td.get_interface_type(type(o))
         type_s = f"{interface_type.__module__}.{interface_type.__name__}"

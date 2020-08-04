@@ -58,7 +58,10 @@ export class DFTestPtr extends libpybx.ObjectPtr {
 	    console.log("subscribe:", libpybx.to_json_string(call_req));
 	    this.ws.send(libpybx.to_json_string(call_req));
 	});
-	return p;
+	return p.then(ret_json => {
+	    let ret = null;
+	    return ret;
+	});
     }
 };
 
@@ -82,7 +85,10 @@ export class ObserverPtr extends libpybx.ObjectPtr {
 	    this.comm.add_message_handler(call_req['message-id'], [resolve, reject]);
 	    this.ws.send(libpybx.to_json_string(call_req));
 	});
-	return p;
+	return p.then(ret_json => {
+	    let ret = null;
+	    return ret;
+	});
     }
 };
 

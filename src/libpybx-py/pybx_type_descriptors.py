@@ -1,3 +1,5 @@
+class ptr_impl_base: pass
+
 interface_ptr_types = {} # interface type -> interface ptr type
 inv_interface_ptr_types = {} # interface ptr type -> interface type
 def register_interface_ptr_type(interface_type, interface_ptr_type):
