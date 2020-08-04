@@ -155,6 +155,7 @@ pybx::Communicator::wait_for_response(const string& message_id)
 
   {
     lock_guard g(waiters_lock);
+    cout << "erasing " << message_id << endl;
     waiters.erase(message_id);
   }
   

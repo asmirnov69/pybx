@@ -28,8 +28,8 @@ class ptr_impl_DFTest(pybx.ptr_impl_base):
         self.comm.add_call_waiter__(message_id, result_fut, loop)
 
         res_message_json = await result_fut
-        print('res_message_json:', res_message_json['retval']['ret'])
-        ret = pybx_json.from_json(res_message_json['retval']['ret'], DFWUPC)
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], DFWUPC)
         return ret
         
     async def subscribe(self, ptr):
@@ -50,8 +50,8 @@ class ptr_impl_DFTest(pybx.ptr_impl_base):
         self.comm.add_call_waiter__(message_id, result_fut, loop)
 
         res_message_json = await result_fut
-        print('res_message_json:', res_message_json['retval']['ret'])
-        ret = pybx_json.from_json(res_message_json['retval']['ret'], None)
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], None)
         return ret
 
 class ptr_impl_Observer(pybx.ptr_impl_base):
@@ -78,8 +78,8 @@ class ptr_impl_Observer(pybx.ptr_impl_base):
         self.comm.add_call_waiter__(message_id, result_fut, loop)
         
         res_message_json = await result_fut
-        print('res_message_json:', res_message_json['retval']['ret'])
-        ret = pybx_json.from_json(res_message_json['retval']['ret'], None)
+        print('res_message_json:', res_message_json['retval']['retval'])
+        ret = pybx_json.from_json(res_message_json['retval']['retval'], None)
         return ret
 
 pybx_td.register_interface_ptr_type(DFTest, ptr_impl_DFTest)

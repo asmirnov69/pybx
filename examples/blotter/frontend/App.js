@@ -27,7 +27,8 @@ class ObserverI extends Blotter.Observer
     
     show(df) {
 	console.log("ObserverI::show:", df);
-	this.set_row_func(df.df.dataframeJSON);
+	let df_rows = JSON.parse(df.df.dataframeJSON)
+	this.set_row_func(df_rows);
 	this.set_update_c_func(df.update_c);
     }
 };
@@ -61,7 +62,8 @@ function App() {
 	    set_update_c(df.update_c);
 	    setColumns(df.df.columns.map(x => { return {name: x}; }));
 	    setColumnOrder(df.df.columns);
-	    setRows(df.df.dataframeJSON);
+	    let df_rows = JSON.parse(df.df.dataframeJSON)
+	    setRows(df_rows);
 	});
     }
     

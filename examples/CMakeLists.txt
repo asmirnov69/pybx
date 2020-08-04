@@ -1,4 +1,5 @@
 project(examples)
 
-add_subdirectory(simplest)
+add_subdirectory(blotter)
+#add_subdirectory(simplest)
 

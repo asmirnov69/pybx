@@ -125,7 +125,7 @@ class Communicator:
             res_message = {'message-type': 'method-call-return',
                            'message-id': str(uuid.uuid1()),
                            'orig-message-id': message_json['message-id'],
-                           'retval': {'ret': ret_json}}
+                           'retval': {'retval': ret_json}}
             print('return res_message:', res_message)
             res_message_s = json.dumps(res_message)
         except Exception as e:

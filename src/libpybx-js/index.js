@@ -68,7 +68,7 @@ export class Communicator
 		let message = JSON.parse(e_data);
 		if (message['message-type'] == 'method-call-return') {
 		    let [resolve, reject] = this.messages.get(message['orig-message-id']);
-		    let ret = message.retval.ret;
+		    let ret = message.retval.retval;
 		    resolve(ret);
 		} else if (message['message-type'] == 'method-call-exception') {
 		    let [resolve, reject] = this.messages.get(message['orig-message-id']);
@@ -83,7 +83,7 @@ export class Communicator
 			    'message-id': generateQuickGuid(),
 			    'orig-message-id': message['message-id'],
 			    'retval': {
-				'ret': res
+				'retval': res
 			    }
 			};
 			this.ws.send(JSON.stringify(res_message));

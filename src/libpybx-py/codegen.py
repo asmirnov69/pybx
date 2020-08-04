@@ -148,7 +148,7 @@ def parse_pybx_interface(node):
     if isinstance(node, ast.ClassDef):
         #ipdb.set_trace()
         if len(node.bases) == 1:
-            if node.bases[0].value.id == 'pybx_idl' and node.bases[0].attr == 'interface':
+            if node.bases[0].value.id == 'pybx' and node.bases[0].attr == 'interface':
                 interface_def = InterfaceDef(node.name)
                 print("parse_pybx_interface: ", node.name)
                 for el in node.body:
@@ -190,7 +190,7 @@ def parse_pybx_typedef(node):
             if isinstance(node.targets[0], ast.Name):
                 typedef_target = node.targets[0].id
         if isinstance(node.value, ast.Subscript):
-            if node.value.value.value.id == 'pybx_idl' and node.value.value.attr == 'ObjectPtr':
+            if node.value.value.value.id == 'pybx' and node.value.value.attr == 'ObjectPtr':
                 typedef_def = TypedefDef(typedef_target, 'ObjectPtr', node.value.slice.value.id)
             elif node.value.value.value.id == 'typing' and node.value.value.attr == 'List':
                 typedef_def = TypedefDef(typedef_target, 'List', node.value.slice.value.id)
@@ -265,7 +265,7 @@ def parse_module(pybx_fn):
         if isinstance(node, ast.Import):
             for n in node.names:
                 if n.name.find("_idl") != -1:
-                    if n.name != 'pybx_idl':
+                    if n.name != 'pybx':
                         raise Exception(f"'import {n.name}' is not supported, use 'from {n.name} import *' instead")
         
         interface_def = parse_pybx_interface(node)
