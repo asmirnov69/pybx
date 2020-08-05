@@ -6,8 +6,7 @@ import pybx, pybx_type_descriptors as pybx_td, pandas as pd, json, threading
 import pybx_comm
 import random, uuid
 import pybx_json
-Blotter = pybx.import_pybx("./Blotter.pybx")
-pybx.register_ptr_class_impls(Blotter, globals())
+pybx.import_pybx("./Blotter.pybx")
 
 class ObserverI(Blotter.Observer):
     async def show(self, df):

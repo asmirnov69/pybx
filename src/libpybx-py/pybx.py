@@ -18,7 +18,12 @@ def import_pybx(fn):
         mod = types.ModuleType(loader.name)
         sys.modules[absolute_name] = mod
         loader.exec_module(mod)
-    return mod
+
+    #ipdb.set_trace()
+    globals_ns = inspect.stack()[1][0].f_globals
+    globals_ns[absolute_name] = mod
+    register_ptr_class_impls(mod, globals_ns)
+    #return mod
 
 def register_ptr_class_impls(pybx_mod, globals_ns):
     for class_name in dir(pybx_mod):
