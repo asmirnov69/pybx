@@ -3,6 +3,7 @@ import sys, asyncio
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import pybx, pybx_type_descriptors as pybx_td, pandas as pd, json, threading
+import pybx_comm
 import random, uuid
 import pybx_json
 Blotter = pybx.import_pybx("./Blotter.pybx")
@@ -161,7 +162,7 @@ class DFTestI(Blotter.DFTest):
                     print(e)
             
 async def test_coro():
-    comm = pybx.Communicator()
+    comm = pybx_comm.Communicator()
     testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
     df = await testdf_ptr.get_df()
@@ -172,7 +173,7 @@ def test():
     asyncio.get_event_loop().run_until_complete(test_coro())
     
 async def test_subscriber_coro():
-    comm = pybx.Communicator()
+    comm = pybx_comm.Communicator()
     testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
     subscriber_o = ObserverI()
@@ -186,7 +187,7 @@ def test_subscriber():
     
 async def run_coro():
     port = 8080
-    comm = pybx.Communicator()
+    comm = pybx_comm.Communicator()
     test_o = DFTestI()
     comm.add_object(test_o, "test_df")
 
