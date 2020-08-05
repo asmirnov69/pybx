@@ -7,6 +7,7 @@ import pybx_comm
 import random, uuid
 import pybx_json
 pybx.import_pybx("./Blotter.pybx")
+pybx.import_pybx("./Utils.pybx")
 
 class ObserverI(Blotter.Observer):
     async def show(self, df):
@@ -43,7 +44,7 @@ class DFTestI(Blotter.DFTest):
         
     async def get_df(self):
         with self.df_lock:
-            df_ret = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
+            df_ret = Utils.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
             return Blotter.DFWUPC(df = df_ret, update_c = self.c)
 
     async def subscribe(self, ptr):
@@ -57,7 +58,7 @@ class DFTestI(Blotter.DFTest):
             for ptr in self.subscribers:
                 try:
                     #ipdb.set_trace()
-                    df_o = Blotter.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
+                    df_o = Utils.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
                     j = Blotter.DFWUPC(df = df_o, update_c = self.c)
                     await ptr.show(j)
                 except Exception as e:
@@ -73,6 +74,7 @@ async def test_coro():
 
 @fuargs.action
 def test():
+    ipdb.set_trace()
     asyncio.get_event_loop().run_until_complete(test_coro())
     
 async def test_subscriber_coro():

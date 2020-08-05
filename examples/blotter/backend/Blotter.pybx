@@ -2,17 +2,11 @@
 from __future__ import annotations 
 import typing, enum, dataclasses
 import pybx
-
-StringSeq = typing.List[str]
-
-@dataclasses.dataclass
-class DataFrame:
-    columns: StringSeq
-    dataframeJSON: str
+pybx.import_pybx("./Utils.pybx")
 
 @dataclasses.dataclass
 class DFWUPC:
-    df: DataFrame
+    df: Utils.DataFrame
     update_c: int
 
 class DFTest(pybx.interface):
