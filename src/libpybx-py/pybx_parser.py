@@ -32,6 +32,14 @@ class InterfaceDef:
         for m in self.methods:
             m.dump()
 
+class Type:
+    def __init__(self, py_type):
+        self.py_type = py_type
+
+    def __repr__(self):
+        ret = "Type " + repr(self.py_type)
+        return ret
+    
 class InterfaceMethodDef:
     def __init__(self, interface_def, method_name, type_hints, sig):
         self.interface_def = interface_def
@@ -47,10 +55,10 @@ class InterfaceMethodDef:
     
     def get_method_arg_types(self):
         args = self.get_method_args()
-        return [self.type_hints[x] for x in args]
+        return [Type(self.type_hints[x]) for x in args]
 
     def get_method_return_type(self):
-        return self.type_hints['return']
+        return Type(self.type_hints['return'])
     
     def dump(self):
         print(f" method {self.name}")
@@ -76,7 +84,7 @@ class StructMemberDef:
     def __init__(self, struct_def, field, field_type):
         self.struct_def = struct_def
         self.field = field
-        self.field_type = field_type
+        self.field_type = Type(field_type)
 
     def get_member_name(self):
         return self.field.name
