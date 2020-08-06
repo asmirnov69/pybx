@@ -79,7 +79,7 @@ def generate_enum_def(enum_def, out_fd):
     print("  throw runtime_error(m.str());", file = out_fd)
     print(" }", file = out_fd)
     print("}", file = out_fd)
-        
+
 def generate_interface_client_forward_declarations(module_def, out_fd):
     for interface_def in module_def.interfaces:
         print(f"class {interface_def.name}Ptr;", file = out_fd)
