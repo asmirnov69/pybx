@@ -1,19 +1,13 @@
 # -*- python -*-
 from __future__ import annotations 
-import typing, enum, dataclasses
-import pybx
-#pybx.import_pybx("./Utils.pybx")
+import typing, enum, dataclasses, pybx
+pybx.import_pybx("Utils")
 
 StringSeq = typing.List[str]
 
 @dataclasses.dataclass
-class DataFrame:
-    columns: StringSeq
-    dataframeJSON: str
-
-@dataclasses.dataclass
 class DFWUPC:
-    df: DataFrame
+    df: Utils.DataFrame
     update_c: int
 
 class DFTest(pybx.interface):

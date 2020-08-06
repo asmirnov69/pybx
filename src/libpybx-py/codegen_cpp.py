@@ -1,6 +1,5 @@
 import ipdb
 import os.path
-from codegen import *
 
 def generate_prolog(source_pybx_fn, out_fd):
     macro_lock_s = os.path.basename(source_pybx_fn).split(".")[0].upper()
@@ -31,18 +30,20 @@ def generate_epilog(out_fd):
 def generate_struct_def(struct_def, out_fd):
     # struct def
     print(f"struct {struct_def.name} {{", file = out_fd)
-    for m_def in struct_def.members:
+    for m_def in struct_def.fields:
         #ipdb.set_trace()
-        m_cpp_type = m_def.type.get_cpp_type()
-        print(f" {m_cpp_type} {m_def.name};", file = out_fd);
+        m_cpp_name = m_def.get_member_name()
+        m_cpp_type = m_def.get_member_type()
+        print(f" {m_cpp_type} {m_cpp_name};", file = out_fd);
     print("};", file = out_fd)
 
     #get_struct_descriptor
     print(f"template <> inline StructDescriptor get_struct_descriptor<{struct_def.name}>()", file = out_fd)
     print("{", file = out_fd)
     print(" static const StructDescriptor sd = {", file = out_fd)
-    for m_def in struct_def.members:
-        print(f"  make_member_descriptor(\"{m_def.name}\", &{struct_def.name}::{m_def.name}),", file = out_fd)
+    for m_def in struct_def.fields:
+        m_cpp_name = m_def.get_member_name()
+        print(f"  make_member_descriptor(\"{m_cpp_name}\", &{struct_def.name}::{m_cpp_name}),", file = out_fd)
     print(" };", file = out_fd)
     print(" return sd;", file = out_fd)
     print("}", file = out_fd)
@@ -105,9 +106,9 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print(f"  {class_name}(pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
     print(f"  void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);", file = out_fd)
     for m_def in interface_def.methods:
-        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
-        m_args = ", ".join(m_def.method_args.get_typed_args_list())
-        print(f"  {m_cpp_ret_type} {m_def.method_name}({m_args});", file = out_fd)
+        m_cpp_ret_type = m_def.get_method_return_type()
+        m_args = ", ".join(m_def.get_method_typed_args())
+        print(f"  {m_cpp_ret_type} {m_def.name}({m_args});", file = out_fd)
     print("};", file = out_fd)
 
     # get_struct_descriptor for Ptr class
@@ -126,24 +127,24 @@ def generate_interface_server_declarations(interface_def, out_fd):
     print(f" typedef {interface_def.name}Ptr ptr;", file = out_fd)
     #ipdb.set_trace()
     for m_def in interface_def.methods:
-        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
-        m_args = ", ".join(m_def.method_args.get_typed_args_list())
-        print(f" virtual {m_cpp_ret_type} {m_def.method_name}({m_args}) = 0;", file = out_fd)
+        m_cpp_ret_type = m_def.get_method_return_type()
+        m_args = ", ".join(m_def.get_method_typed_args())
+        print(f" virtual {m_cpp_ret_type} {m_def.name}({m_args}) = 0;", file = out_fd)
     print("};", file = out_fd)
 
     # method implementations
     for m_def in interface_def.methods:
-        method_impl_class_name = f"{interface_def.name}__{m_def.method_name}"
+        method_impl_class_name = f"{interface_def.name}__{m_def.name}"
 
         # method impl class
         print(f"struct {method_impl_class_name} : public pybx::method_impl", file = out_fd)
         print("{", file = out_fd)
         print(" struct args_t {", file = out_fd)
-        m_args = ";\n".join(m_def.method_args.get_typed_args_list()) + ";"
+        m_args = ";\n".join(m_def.get_method_typed_args()) + ";"
         print(f" {m_args}", file = out_fd)
         print(" };", file = out_fd)
         print(" struct return_t {", file = out_fd)
-        m_cpp_ret_type = m_def.method_ret_type.get_cpp_type()
+        m_cpp_ret_type = m_def.get_method_return_type()
         print(f"   {m_cpp_ret_type} retval;", file = out_fd)
         print(" };", file = out_fd)
         print(" void do_call(const std::string& req_s, std::string* res_s, std::shared_ptr<ix::WebSocket>) override;", file = out_fd)
@@ -154,8 +155,8 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"template <> inline StructDescriptor get_struct_descriptor<{method_impl_class_name}::args_t>()", file = out_fd)
         print("{", file = out_fd)
         print(" static const StructDescriptor sd = {", file = out_fd)
-        for m_arg in m_def.method_args.args:
-            print(f"  make_member_descriptor(\"{m_arg.arg_name}\", &{method_impl_class_name}::args_t::{m_arg.arg_name}),", file = out_fd)
+        for m_arg in m_def.get_method_args():
+            print(f"  make_member_descriptor(\"{m_arg}\", &{method_impl_class_name}::args_t::{m_arg}),", file = out_fd)
         print(" };", file = out_fd)
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
@@ -212,17 +213,17 @@ def generate_interface_client_definitions(interface_def, out_fd):
     }}
     """
     print(method_activate_code, file = out_fd)
-    
+
     for m_def in interface_def.methods:
         generate_interface_client_method_definition(class_name, m_def, out_fd)
 
 def generate_interface_client_method_definition(class_name, m_def, out_fd):
     # Ptr methods
-    method_impl_class_name = f"{m_def.class_def.name}__{m_def.method_name}"
-    m_args = ", ".join(m_def.method_args.get_typed_args_list())
-    m_ret_type = m_def.method_ret_type.get_cpp_type()
-    req_args_assignments = ";\n".join(["req.args." + x + "=" + x for x in m_def.method_args.get_args_list()])
-    print(f"inline {m_ret_type} {class_name}::{m_def.method_name}({m_args})", file = out_fd)
+    method_impl_class_name = f"{class_name}__{m_def.name}"
+    m_args = ", ".join(m_def.get_method_typed_args())
+    m_ret_type = m_def.get_method_return_type()
+    req_args_assignments = ";\n".join(["req.args." + x + "=" + x for x in m_def.get_method_args()])
+    print(f"inline {m_ret_type} {class_name}::{m_def.name}({m_args})", file = out_fd)
     print("{", file = out_fd)
     ptr_method_template = f"""
     pybx::Request<{method_impl_class_name}::args_t> req{{
@@ -260,18 +261,19 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     # use-case of server callbacks only. More reigirous type support required
     # to support all possible combinations like vector of ptrs, returns of ptr
     # etc
-    args_with_activation = []
-    for arg in m_def.method_args.args:
-        arg_typedef = module_def.find_typedef(arg.arg_type.py_type)
-        if arg_typedef != None:
-            if arg_typedef.typedef_container == 'ObjectPtr':
-                args_with_activation.append(arg)
     activations = []
-    for arg in args_with_activation:
-        activations.append(f"req.args.{arg.arg_name}.activate(comm, ws);")
+    if 0:
+        args_with_activation = []
+        for arg in m_def.get_method_args():
+            arg_typedef = module_def.find_typedef(arg.arg_type.py_type)
+            if arg_typedef != None:
+                if arg_typedef.typedef_container == 'ObjectPtr':
+                    args_with_activation.append(arg)
+        for arg in args_with_activation:
+            activations.append(f"req.args.{arg.arg_name}.activate(comm, ws);")
     activations_code = "\n".join(activations)
 
-    m_args = ", ".join(["req.args." + x for x in m_def.method_args.get_args_list()])
+    m_args = ", ".join(["req.args." + x for x in m_def.get_method_args()])
     method_impl_do_call_tmpl = f"""
     ostringstream res_os;
     try {{
@@ -289,7 +291,7 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
       pybx::Response<return_t> res;
       res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
-      res.retval.retval = self->{m_def.method_name}({m_args});
+      res.retval.retval = self->{m_def.name}({m_args});
       to_json(res_os, res);
     }} catch (exception& e) {{
       pybx::ExceptionResponse eres;
@@ -302,14 +304,14 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     *res_s = res_os.str();
     """
 
-    class_name = f"{interface_def.name}__{m_def.method_name}"
+    class_name = f"{interface_def.name}__{m_def.name}"
     print(f"inline void {class_name}::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)", file = out_fd)
     print("{", file = out_fd)
     print(method_impl_do_call_tmpl, file = out_fd)
     print("}", file = out_fd)
     print(f"UNIQUE = pybx::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
 
-def generate_cpp_file(source_pybx_fn, module_def, out_fd):
+def generate_cpp_file(module_def, out_fd, source_pybx_fn):
     generate_prolog(source_pybx_fn, out_fd)
 
     for enum_def in module_def.enums:
@@ -319,11 +321,12 @@ def generate_cpp_file(source_pybx_fn, module_def, out_fd):
         generate_struct_def(struct_def, out_fd)
 
     generate_interface_client_forward_declarations(module_def, out_fd)
-    generate_typedef_declarations(module_def, out_fd)
+    #generate_typedef_declarations(module_def, out_fd)
     
     for interface_def in module_def.interfaces:
         generate_interface_client_declarations(interface_def, out_fd)
-        
+
+    #ipdb.set_trace()        
     for interface_def in module_def.interfaces:
         generate_interface_server_declarations(interface_def, out_fd)
         

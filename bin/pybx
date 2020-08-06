@@ -4,11 +4,13 @@ import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import pybx, pybx_parser
+import codegen_cpp, codegen_js
 
 @fuargs.action
 def verify(fn):
-    pybx.import_pybx(fn, False)
     mod_name = os.path.basename(fn).split(".")[0]
+    pybx.pybx_path = [os.path.dirname(fn)]
+    pybx.import_pybx(mod_name, False)
     if not mod_name in globals():
         print(f"can't find module {mod_name}, load failed")
     else:
@@ -16,8 +18,9 @@ def verify(fn):
 
 @fuargs.action
 def parse(fn):
-    pybx.import_pybx(fn, False)
     mod_name = os.path.basename(fn).split(".")[0]
+    pybx.pybx_path = [os.path.dirname(fn)]
+    pybx.import_pybx(mod_name, False)
     if not mod_name in globals():
         print(f"can't find module {mod_name}, load failed")
         return
@@ -27,24 +30,32 @@ def parse(fn):
             
 @fuargs.action
 def gen_cpp(fn, out_fn = None):
-    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-    pybx.import_pybx(fn)
     mod_name = os.path.basename(fn).split(".")[0]
+    pybx.pybx_path = [os.path.dirname(fn)]
+    pybx.import_pybx(mod_name, False)
     if not mod_name in globals():
         print(f"can't find module {mod_name}, load failed")
         return
     mod = globals()[mod_name]
-    mod_defs = codegen.create_module_defs(mod)
-    codegen_cpp.generate_cpp_file(module_defs, out_fd)
+    mod_defs = pybx_parser.parse_module(mod)
+
+    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
+    codegen_cpp.generate_cpp_file(mod_defs, out_fd, fn)
     return 0
 
 @fuargs.action
 def gen_js(fn, out_fn = None):
-    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-    module_defs = codegen.parse_all_modules(fn)
-    module_defs.dump()
+    mod_name = os.path.basename(fn).split(".")[0]
+    pybx.pybx_path = [os.path.dirname(fn)]
+    pybx.import_pybx(mod_name, False)
+    if not mod_name in globals():
+        print(f"can't find module {mod_name}, load failed")
+        return
+    mod = globals()[mod_name]
+    mod_defs = pybx_parser.parse_module(mod)
 
-    codegen_js.generate_js_file(fn, module_defs, out_fd)
+    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
+    codegen_js.generate_js_file(mod_defs, out_fd, fn)
     return 0
 
 if __name__ == "__main__":

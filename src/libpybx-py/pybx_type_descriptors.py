@@ -1,3 +1,7 @@
+import typing
+
+class interface: pass
+ObjectPtr = typing._alias(object, typing.T, inst = False)
 class ptr_impl_base: pass
 
 interface_ptr_types = {} # interface type -> interface ptr type

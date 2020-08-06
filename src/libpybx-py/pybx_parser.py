@@ -42,6 +42,9 @@ class InterfaceMethodDef:
     def get_method_args(self):
         return [x for x in self.sig.parameters if x != 'self']
 
+    def get_method_typed_args(self):
+        return [f"{x[1]} {x[0]}" for x in zip(self.get_method_args(), self.get_method_arg_types())]
+    
     def get_method_arg_types(self):
         args = self.get_method_args()
         return [self.type_hints[x] for x in args]

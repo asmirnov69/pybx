@@ -3,9 +3,9 @@ from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import asyncio, pybx
 #import backend_idl
-backend_idl = pybx.import_pybx("./backend.pybx")
+pybx.import_pybx("backend")
 
-class HelloI(backend_idl.Hello):
+class HelloI(backend.Hello):
     def __init__(self):
         self.cbs = []
     
@@ -13,8 +13,8 @@ class HelloI(backend_idl.Hello):
         if weSay != "hi":
             raise Exception(f"unexpected weSay value: {weSay}")
         print("HelloI::sayHello")
-        ret = backend_idl.Greetings(language = "python", text = "Hello from python", color = backend_idl.Color.NORMAL)
-        ret.color = backend_idl.Color.RED
+        ret = backend.Greetings(language = "python", text = "Hello from python", color = backend.Color.NORMAL)
+        ret.color = backend.Color.RED
         return ret
 
     async def register_hello_cb(self, cb):
@@ -25,7 +25,7 @@ class HelloI(backend_idl.Hello):
     async def reformatGreetings(self, gs):
         print("HelloI::reformatGreetings:", gs)
         for g in gs:
-            g['color'] = backend_idl.Color.GREEN
+            g['color'] = backend.Color.GREEN
         return gs
     
 @fuargs.action
