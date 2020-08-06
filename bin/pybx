@@ -3,79 +3,39 @@ import ipdb
 import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import ast
-import codegen, codegen_cpp, codegen_js
-import pybx
+import pybx, pybx_parser
 
 @fuargs.action
-def ast_dump(fn):
-    source_code = "\n".join(open(fn).readlines())
-    pt = ast.parse(source_code)
-    print(ast.dump(pt))
+def verify(fn):
+    pybx.import_pybx(fn, False)
+    mod_name = os.path.basename(fn).split(".")[0]
+    if not mod_name in globals():
+        print(f"can't find module {mod_name}, load failed")
+    else:
+        print(globals()[mod_name])
 
-@fuargs.action
-def verify(fn, mod_name):
-    import types
-    import importlib.machinery
-    loader = importlib.machinery.SourceFileLoader(mod_name, fn)
-    mod = types.ModuleType(loader.name)
-    loader.exec_module(mod)
-    print(mod)
-
-@fuargs.action
-def verify2(fn):
-    import importlib.util
-    module_name = os.path.basename(fn)
-    file_path = fn
-    mod_path = os.path.expanduser(os.path.dirname(fn))
-    print(module_name, file_path, mod_path)
-    sys.path.append(mod_path)
-    #print(sys.path)
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    print(module)
-
-@fuargs.action
-def verify3(fn):
-    mod = os.path.basename(fn).split(".")[0]
-    mod_path = os.path.expanduser(os.path.dirname(fn))
-    sys.path.append(mod_path)
-    print(mod_path, mod)
-    res = exec(f"import {mod}")
-    print(res)
-    
-@fuargs.action
-def verify4(mod_name, fn):
-    my_module = {} 
-    exec(open(fn).read(), my_module)
-    code = f"""class __{mod_name}:
-    def __init__(self, adict):
-        self.__dict__.update(adict)
-{mod_name} = __{mod_name}(my_module)
-    """
-    exec(code)
-    ret = eval(f"{mod_name}")
-    ipdb.set_trace()
-
-@fuargs.action
-def verify5(fn):
-    mod = pybx.import_pybx(fn)
-    print(mod)
-    
 @fuargs.action
 def parse(fn):
-    out_fd = sys.stdout
-    module_defs = codegen.parse_all_modules(fn)
-    module_defs.dump()
-    
+    pybx.import_pybx(fn, False)
+    mod_name = os.path.basename(fn).split(".")[0]
+    if not mod_name in globals():
+        print(f"can't find module {mod_name}, load failed")
+        return
+    mod = globals()[mod_name]
+    mod_defs = pybx_parser.parse_module(mod)
+    mod_defs.dump()
+            
 @fuargs.action
 def gen_cpp(fn, out_fn = None):
     out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-    module_defs = codegen.parse_all_modules(fn)
-    module_defs.dump()
-        
-    codegen_cpp.generate_cpp_file(fn, module_defs, out_fd)
+    pybx.import_pybx(fn)
+    mod_name = os.path.basename(fn).split(".")[0]
+    if not mod_name in globals():
+        print(f"can't find module {mod_name}, load failed")
+        return
+    mod = globals()[mod_name]
+    mod_defs = codegen.create_module_defs(mod)
+    codegen_cpp.generate_cpp_file(module_defs, out_fd)
     return 0
 
 @fuargs.action
@@ -85,15 +45,6 @@ def gen_js(fn, out_fn = None):
     module_defs.dump()
 
     codegen_js.generate_js_file(fn, module_defs, out_fd)
-    return 0
-
-@fuargs.action
-def gen_py(fn, out_fn = None):
-    out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-    module_defs = codegen.parse_all_modules(fn)
-    module_defs.dump()
-
-    codegen_py.generate_py_file(fn, module_defs, out_fd)
     return 0
 
 if __name__ == "__main__":

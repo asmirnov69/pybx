@@ -7,7 +7,7 @@ import pybx_json
 class interface: pass
 ObjectPtr = typing._alias(object, typing.T, inst = False)
 
-def import_pybx(fn):
+def import_pybx(fn, do_ptr_class_impls_registration = True):
     mod_name = os.path.basename(fn).split(".")[0]
     absolute_name = importlib.util.resolve_name(mod_name, None)
     print("absolute_name:", absolute_name)
@@ -22,7 +22,8 @@ def import_pybx(fn):
     #ipdb.set_trace()
     globals_ns = inspect.stack()[1][0].f_globals
     globals_ns[absolute_name] = mod
-    register_ptr_class_impls(mod, globals_ns)
+    if do_ptr_class_impls_registration:
+        register_ptr_class_impls(mod, globals_ns)
     #return mod
 
 def register_ptr_class_impls(pybx_mod, globals_ns):

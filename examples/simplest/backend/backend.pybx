@@ -1,7 +1,7 @@
 # -*- python -*-
 from __future__ import annotations 
 import typing, enum, dataclasses
-import pybx_idl
+import pybx
 
 class Color(enum.Enum):
     NORMAL = 0
@@ -16,14 +16,14 @@ class Greetings:
     
 GreetingsSeq = typing.List[Greetings]
 
-class Hello(pybx_idl.interface):
+class Hello(pybx.interface):
     def sayHello(self, weSay: str) -> Greetings: []
     def reformatGreetings(self, gs: GreetingsSeq) -> GreetingsSeq: []
     def register_hello_cb(self, cb: HelloCBPtr) -> str: []
    
-class HelloCB(pybx_idl.interface):
+class HelloCB(pybx.interface):
     def confirmHello(self, hello: str) -> str: []
 
-HelloCBPtr = pybx_idl.ObjectPtr[HelloCB]
+HelloCBPtr = pybx.ObjectPtr[HelloCB]
 #HelloCBPtrSeq = typing.List[HelloCBPtr]
 
