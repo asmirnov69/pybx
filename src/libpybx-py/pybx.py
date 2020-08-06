@@ -1,8 +1,9 @@
 import ipdb
 import importlib.machinery, os.path, sys, types
 import inspect
-import codegen_py, pybx_parser
+import codegen_py, pybx_parser, uuid, json, pybx_json
 from pybx_type_descriptors import interface, ObjectPtr
+import pybx_type_descriptors as pybx_td
 
 pybx_path = ["."]
 
@@ -33,6 +34,11 @@ def import_pybx(pybx_mod_name, do_ptr_class_impls_registration = True):
         loader.exec_module(mod)
 
     globals_ns = inspect.stack()[1][0].f_globals
+    #ipdb.set_trace()
+    globals_ns['pybx_td'] = globals()['pybx_td']
+    globals_ns['uuid'] = globals()['uuid']
+    globals_ns['json'] = globals()['json']
+    globals_ns['pybx_json'] = globals()['pybx_json']
     globals_ns[absolute_name] = mod
         
     if do_ptr_class_impls_registration:

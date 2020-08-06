@@ -2,8 +2,6 @@ import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
 import asyncio, pybx, pybx_comm
-#import backend_idl
-import pybx_type_descriptors as pybx_td
 pybx.import_pybx("backend")
 
 class HelloI(backend.Hello):

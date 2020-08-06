@@ -2,8 +2,7 @@ import ipdb
 import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import asyncio, pybx, pybx_comm, uuid, json, pybx_json
-import pybx_type_descriptors as pybx_td
+import asyncio, pybx, pybx_comm
 pybx.import_pybx("backend")
 
 async def a_run_client():
