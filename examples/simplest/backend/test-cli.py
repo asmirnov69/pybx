@@ -2,13 +2,13 @@ import ipdb
 import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import asyncio, pybx, uuid, json
-backend = pybx.import_pybx("./backend.pybx")
-pybx.build_ptrs(backend)
+import asyncio, pybx, pybx_comm, uuid, json, pybx_json
+import pybx_type_descriptors as pybx_td
+pybx.import_pybx("backend")
 
 async def a_run_client():
     #ipdb.set_trace()
-    comm = pybx.Communicator()
+    comm = pybx_comm.Communicator()
     hello_ptr = await comm.get_ptr(backend.Hello, "ws://localhost:8080/", "hello")
 
     g = await hello_ptr.sayHello("hi")

@@ -7,7 +7,7 @@ import pybx_comm
 import random, uuid
 import pybx_json
 pybx.import_pybx("Blotter")
-#pybx.import_pybx("Utils")
+pybx.import_pybx("Utils")
 
 class ObserverI(Blotter.Observer):
     async def show(self, df):
@@ -74,7 +74,6 @@ async def test_coro():
 
 @fuargs.action
 def test():
-    ipdb.set_trace()
     asyncio.get_event_loop().run_until_complete(test_coro())
     
 async def test_subscriber_coro():

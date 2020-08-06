@@ -1,7 +1,7 @@
-#import ipdb
+import ipdb
 import importlib.machinery, os.path, sys, types
 import inspect
-import codegen_py
+import codegen_py, pybx_parser
 from pybx_type_descriptors import interface, ObjectPtr
 
 pybx_path = ["."]
@@ -35,8 +35,7 @@ def import_pybx(pybx_mod_name, do_ptr_class_impls_registration = True):
     globals_ns = inspect.stack()[1][0].f_globals
     globals_ns[absolute_name] = mod
         
-    #ipdb.set_trace()
     if do_ptr_class_impls_registration:
-        codegen_py.register_ptr_class_impls(mod, globals_ns)
-    #return mod
+        mod_defs = pybx_parser.parse_module(mod)
+        codegen_py.generate_ptr_classes(mod, mod_defs, globals_ns)
 

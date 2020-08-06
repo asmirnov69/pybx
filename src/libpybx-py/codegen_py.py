@@ -1,13 +1,10 @@
-import pybx_type_descriptors as pybx_td
+import ipdb
 import pybx_json
+from pybx_parser import Type
 import uuid, json, asyncio, inspect, io, typing
 import pybx_type_descriptors as pybx_td
 
-def register_ptr_class_impls(pybx_mod, globals_ns):
-    for class_name in dir(pybx_mod):
-        interface_obj = getattr(pybx_mod, class_name)
-        if inspect.isclass(interface_obj) and issubclass(interface_obj, pybx_td.interface):
-            register_ptr_class_impl(pybx_mod, interface_obj, class_name, globals_ns)
+show_gen_code = False
 
 ptr_class_def_code_tmpl = """
 class ptr_impl_class(pybx_td.ptr_impl_base):
@@ -18,7 +15,7 @@ class ptr_impl_class(pybx_td.ptr_impl_base):
 """
 
 ptr_class_method_def_code_tmpl = """
-    async def {method_name}({method_args_l}):
+    async def {method_name}(self, {method_args_l}):
         message_json = {{
             'message-type': 'method-call',
             'method-signature': '{method_signature}',
@@ -40,42 +37,42 @@ ptr_class_method_def_code_tmpl = """
         return ret
 """
 
-def register_ptr_class_impl(pybx_mod, interface_obj, interface_class_name, globals_ns):
-    #ipdb.set_trace()
-    interface_methods = inspect.getmembers(interface_obj, predicate=inspect.isfunction)
-    ptr_class_code = io.StringIO()
-    print(ptr_class_def_code_tmpl, file = ptr_class_code)
-        
-    for interface_method in interface_methods:
-        method_name, method_func = interface_method
-        th = typing.get_type_hints(method_func)
-        #print(class_name, method_name, th)
-        method_args_d = dict(th); del method_args_d['return']
-        method_signature = f"{interface_class_name}__{method_name}"
-        pybx_td.register_method_descriptor(f"{interface_class_name}__{method_name}", f"{method_name}", method_args_d, th['return'])
+def generate_ptr_classes(pybx_mod, mod_defs, globals_ns):
+    for interface_def in mod_defs.interfaces:
+        gen_code = io.StringIO()
+        print(ptr_class_def_code_tmpl, file = gen_code)
+        interface_class_name = interface_def.name
+        for m in interface_def.methods:
+            method_name = m.name
+            method_signature = f"{interface_class_name}__{method_name}"
 
-        dd = {}
-        dd['method_signature'] = method_signature
-        dd['method_name'] = method_name
-        if th['return'] == type(None):
-            dd['return_class_name'] = 'None'
-        else:
-            dd['return_class_name'] = f"{th['return'].__module__}.{th['return'].__name__}"
-        args_list = ["'%s': pybx_json.to_json(%s)" % (x,x) for x  in method_args_d.keys()]
-        dd['method_args_d'] = ",".join(args_list)
-        method_sig = inspect.signature(method_func)
-        dd['method_args_l'] = ",".join([x for x in method_sig.parameters])
-        print(ptr_class_method_def_code_tmpl.format(**dd), file = ptr_class_code)
+            dd = {}
+            dd['method_signature'] = method_signature
+            dd['method_name'] = method_name
+            dd['return_class_name'] = m.get_method_return_type().get_py_code_name()
 
-    #ipdb.set_trace()
-    nn = {}
-    gen_code = ptr_class_code.getvalue()
-    exec(gen_code, globals_ns, nn)
-    new_class_obj = nn['ptr_impl_class']
-    ptr_class_name = f"ptr_impl_{interface_class_name}"
-    setattr(new_class_obj, '__name__', ptr_class_name)
-    setattr(new_class_obj, '__qualname__', ptr_class_name)
-    setattr(new_class_obj, '__module__', pybx_mod.__name__)
-    setattr(pybx_mod, ptr_class_name, new_class_obj)
-    pybx_td.register_interface_ptr_type(interface_obj, new_class_obj)
-    
+            method_args = m.get_method_args()
+            args_list = ["'%s': pybx_json.to_json(%s)" % (x,x) for x in method_args]
+            dd['method_args_d'] = ",".join(args_list)
+            dd['method_args_l'] = ",".join([x for x in method_args])
+
+            print(ptr_class_method_def_code_tmpl.format(**dd), file = gen_code)
+
+        if show_gen_code:
+            print(gen_code.getvalue())
+
+        nn = {}
+        #ipdb.set_trace()
+        exec(gen_code.getvalue(), globals_ns, nn)
+        new_class_obj = nn['ptr_impl_class']
+        ptr_class_name = f"ptr_impl_{interface_class_name}"
+        setattr(new_class_obj, '__name__', ptr_class_name)
+        setattr(new_class_obj, '__qualname__', ptr_class_name)
+        setattr(new_class_obj, '__module__', pybx_mod.__name__)
+        setattr(pybx_mod, ptr_class_name, new_class_obj)            
+
+        pybx_td.register_interface_ptr_type(interface_def.def_type, new_class_obj)
+        for m in interface_def.methods:
+            method_signature = f"{interface_class_name}__{m.name}"
+            pybx_td.register_method_def(method_signature, m)
+

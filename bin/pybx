@@ -3,8 +3,8 @@ import ipdb
 import sys, os.path
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import pybx, pybx_parser
-import codegen_cpp, codegen_js
+import pybx, pybx_parser, pybx_type_descriptors as pybx_td
+import codegen_cpp, codegen_js, codegen_py
 
 @fuargs.action
 def verify(fn):
@@ -57,6 +57,13 @@ def gen_js(fn, out_fn = None):
     out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
     codegen_js.generate_js_file(mod_defs, out_fd, fn)
     return 0
+
+@fuargs.action
+def gen_py(fn):
+    mod_name = os.path.basename(fn).split(".")[0]
+    pybx.pybx_path = [os.path.dirname(fn)]
+    codegen_py.show_gen_code = True
+    pybx.import_pybx(mod_name, True)
 
 if __name__ == "__main__":
     fuargs.exec_actions(sys.argv[1:])

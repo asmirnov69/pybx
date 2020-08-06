@@ -39,7 +39,37 @@ class Type:
     def __repr__(self):
         ret = "Type " + repr(self.py_type)
         return ret
+
+    def is_none(self):
+        return self.py_type == type(None)
     
+    def is_vector_type(self):
+        return hasattr(self.py_type, '_name') and self.py_type._name == 'List'
+
+    def is_ptr_type(self):
+        return hasattr(self.py_type, '_name') and self.py_type._name == 'object'
+
+    def is_struct(self):
+        return dataclasses.is_dataclass(self.py_type)
+
+    def is_enum(self):
+        return inspect.isclass(self.py_type) and issubclass(self.py_type, enum.Enum)
+    
+    def get_py_code_name(self):
+        t = self.py_type
+        if t == type(None):
+            ret = "type(None)"
+        elif inspect.isclass(t):
+            ret = f"{t.__module__}.{t.__name__}"
+        elif hasattr(t, '__origin__'):
+            #ipdb.set_trace()
+            args_s = ",".join([f"{c.__module__}.{c.__name__}" for c in t.__args__])
+            ret = f"{t.__module__}.{t._name}[{args_s}]"
+            #ipdb.set_trace()
+        else:
+            raise Exception(f"can't get py_code_name for type {self.py_type}")
+        return ret
+
 class InterfaceMethodDef:
     def __init__(self, interface_def, method_name, type_hints, sig):
         self.interface_def = interface_def

@@ -1,8 +1,9 @@
 import sys
 from KVAN import fuargs, topdir
 topdir.setup_syspath()
-import asyncio, pybx
+import asyncio, pybx, pybx_comm
 #import backend_idl
+import pybx_type_descriptors as pybx_td
 pybx.import_pybx("backend")
 
 class HelloI(backend.Hello):
@@ -31,7 +32,7 @@ class HelloI(backend.Hello):
 @fuargs.action
 def run_server():
     port = 8080
-    comm = pybx.Communicator()
+    comm = pybx_comm.Communicator()
     ws_server_task = comm.start_server(port)
 
     hello_o = HelloI()

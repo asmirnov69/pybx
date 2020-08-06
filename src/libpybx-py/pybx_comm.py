@@ -97,21 +97,22 @@ class Communicator:
                 obj = self.objects__[object_id]
             #ipdb.set_trace()
             method_signature = message_json['method-signature']
-            method_descriptor = pybx_td.get_method_descriptor(method_signature)
-            if method_descriptor == None:
+            m_def = pybx_td.get_method_def(method_signature)
+            if m_def == None:
                 raise Exception("do_message_action: can't find method", method_signature, object_id)
-            print("calling method", method_descriptor.method_name)
+            print("calling method", m_def.name)
             #ipdb.set_trace()
             args_json = message_json['args']
             args = {}
+            args_d = dict(zip(m_def.get_method_args(), m_def.get_method_arg_types()))
             for k, v in args_json.items():
-                arg_ann_type = method_descriptor.arg_ann_types[k]
+                arg_ann_type = args_d[k]
                 arg_v = pybx_json.from_json(v, arg_ann_type)
                 if isinstance(arg_v, pybx_td.ptr_impl_base): # activation
                     arg_v.comm = self
                     arg_v.ws = ws_handler.ws
                 args[k] = arg_v
-            b_method = eval(f"obj.{method_descriptor.method_name}")
+            b_method = eval(f"obj.{m_def.name}")
             ret = await b_method(**args)
             print("ret:", ret)
             #ipdb.set_trace()

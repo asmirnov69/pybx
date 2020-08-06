@@ -1,6 +1,7 @@
 import ipdb
 import pybx_type_descriptors as pybx_td
 import dataclasses, typing, enum, inspect
+from pybx_parser import Type
 
 def dataclass_to_json(o):
     ret = {}
@@ -33,28 +34,29 @@ def to_json(o):
 
 def from_json(o_json, o_ann_type):
     #ipdb.set_trace()
-    if hasattr(o_ann_type, '_name'):
-        if o_ann_type._name == 'List':
-            ret = []
-            el_type = o_ann_type.__args__[0]
-            for o_json_el in o_json:
-                ret.append(from_json(o_json_el, el_type))
-        elif o_ann_type._name == 'object':
-            #ipdb.set_trace()
-            interface_type = o_ann_type.__args__[0]
-            assert(o_json['__interface_type'] == f"{interface_type.__module__}.{interface_type.__name__}")
-            ptr_type = pybx_td.get_interface_ptr_type(interface_type)
-            ret = ptr_type(None, None, o_json['object_id'])
-        else:
-            raise Exception(f"unhandled ann type {o_ann_type._name}")
-    elif dataclasses.is_dataclass(o_ann_type):
-        dflt_args = {f.name:None for f in dataclasses.fields(o_ann_type)}
-        ret = o_ann_type(**dflt_args)
-        for f, f_type in typing.get_type_hints(o_ann_type).items():
+    if not isinstance(o_ann_type, Type):
+        o_ann_type = Type(o_ann_type)
+
+    if o_ann_type.is_vector_type():
+        ret = []
+        el_type = o_ann_type.py_type.__args__[0]
+        for o_json_el in o_json:
+            ret.append(from_json(o_json_el, el_type))
+    elif o_ann_type.is_ptr_type():
+        #ipdb.set_trace()
+        interface_type = o_ann_type.py_type.__args__[0]
+        assert(o_json['__interface_type'] == f"{interface_type.__module__}.{interface_type.__name__}")
+        ptr_type = pybx_td.get_interface_ptr_type(interface_type)
+        ret = ptr_type(None, None, o_json['object_id'])
+    elif o_ann_type.is_struct():
+        dflt_args = {f.name:None for f in dataclasses.fields(o_ann_type.py_type)}
+        ret = o_ann_type.py_type(**dflt_args)
+        for f, f_type in typing.get_type_hints(o_ann_type.py_type).items():
             setattr(ret, f, from_json(o_json[f], f_type))
-    elif inspect.isclass(o_ann_type) and issubclass(o_ann_type, enum.Enum):
-        ret = o_ann_type(o_ann_type[o_json])
-    else:
+    elif o_ann_type.is_enum():
+        #ipdb.set_trace()
+        ret = o_ann_type.py_type[o_json]
+    else: # is_interface to be implemented
         print("from_json:", o_json, o_ann_type)
         #ipdb.set_trace()
         ret = o_json
