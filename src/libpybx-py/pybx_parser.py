@@ -94,6 +94,26 @@ class Type:
         else:
             raise Exception(f"can't get cpp_code_name for type {self.py_type}")
         return ret
+
+    def get_js_code_name(self):
+        t = self.py_type
+        if self.is_none():
+            ret = "null"
+        elif self.is_struct():
+            ret = f"new {t.__name__}()"
+        elif self.is_vector_type():
+            ret = "[]";
+        elif self.is_ptr_type():
+            i_t = t.__args__[0]
+            ret = f"{i_t.__module__}::{i_t.__name__}Ptr"
+        elif self.is_enum():
+            ret = f"{t.__module__}::{t.__name__}"
+        elif self.py_type in fundamental_types:
+            ret = fundamental_types[self.py_type]
+        else:
+            raise Exception(f"can't get cpp_code_name for type {self.py_type}")
+        return ret
+
     
 class InterfaceMethodDef:
     def __init__(self, interface_def, method_name, type_hints, sig):
