@@ -1,22 +1,25 @@
 import ipdb
-import sys, os.path
+import sys, os.path, ast
 import inspect, typing, pybx
 import dataclasses, enum
 
 class ModuleDef:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.interfaces = []
-        self.structs = []
+        self.structs = {} # struct name -> struct def
         self.enums = []
+        self.struct_order = [] # struct names
 
     def dump(self):
         print("interfaces:", [x.name for x in self.interfaces])
-        print("structs:", [x.name for x in self.structs])
+        print("structs:", [x.name for x in self.structs.values()])
+        print("struct_order:", self.struct_order)
         print("enums:", [x.name for x in self.enums])
 
         for d in self.interfaces:
             d.dump()
-        for s in self.structs:
+        for s in self.structs.values():
             s.dump()
         for e in self.enums:
             e.dump()
@@ -32,6 +35,7 @@ class InterfaceDef:
         for m in self.methods:
             m.dump()
 
+fundamental_types = {str: 'string', int: 'int', float: 'double'}
 class Type:
     def __init__(self, py_type):
         self.py_type = py_type
@@ -70,6 +74,27 @@ class Type:
             raise Exception(f"can't get py_code_name for type {self.py_type}")
         return ret
 
+    def get_cpp_code_name(self):
+        t = self.py_type
+        if self.is_none():
+            ret = "void"
+        elif self.is_struct():
+            ret = f"{t.__module__}::{t.__name__}"
+        elif self.is_vector_type():
+            value_type = self.py_type.__args__[0]
+            value_type_cpp_code_name = Type(value_type).get_cpp_code_name()
+            ret = f"vector<{value_type_cpp_code_name}>"
+        elif self.is_ptr_type():
+            i_t = t.__args__[0]
+            ret = f"{i_t.__module__}::{i_t.__name__}Ptr"
+        elif self.is_enum():
+            ret = f"{t.__module__}::{t.__name__}"
+        elif self.py_type in fundamental_types:
+            ret = fundamental_types[self.py_type]
+        else:
+            raise Exception(f"can't get cpp_code_name for type {self.py_type}")
+        return ret
+    
 class InterfaceMethodDef:
     def __init__(self, interface_def, method_name, type_hints, sig):
         self.interface_def = interface_def
@@ -175,14 +200,29 @@ def parse_module(mod):
     if not inspect.ismodule(mod):
         raise Exception("mod expected to be Module")
 
-    mod_def = ModuleDef()
+    mod_def = ModuleDef(mod.__name__)
     for mod_el_name in dir(mod):
         mod_el = getattr(mod, mod_el_name)
         if inspect.isclass(mod_el) and issubclass(mod_el, pybx.interface):
             mod_def.interfaces.append(parse_pybx_interface(mod_el))
         elif dataclasses.is_dataclass(mod_el):
-            mod_def.structs.append(parse_pybx_struct(mod_el))
+            struct_def = parse_pybx_struct(mod_el)
+            mod_def.structs[struct_def.name] = struct_def
         elif inspect.isclass(mod_el) and issubclass(mod_el, enum.Enum):
             mod_def.enums.append(parse_pybx_enum(mod_el))
 
     return mod_def
+
+def find_declaration_order(mod_def, mod_fn):
+    source_code = "\n".join(open(mod_fn).readlines())
+    pt = ast.parse(source_code)
+    #ipdb.set_trace()
+    for node in ast.iter_child_nodes(pt):
+        #print(pt)
+        if isinstance(node, ast.ClassDef):
+            if len(node.decorator_list) > 0 and node.decorator_list[0].attr == 'dataclass':
+                # we got pybx struct
+                mod_def.struct_order.append(node.name)
+                
+                
+        

@@ -25,8 +25,9 @@ def parse(fn):
         print(f"can't find module {mod_name}, load failed")
         return
     mod = globals()[mod_name]
-    mod_defs = pybx_parser.parse_module(mod)
-    mod_defs.dump()
+    mod_def = pybx_parser.parse_module(mod)
+    pybx_parser.find_declaration_order(mod_def, fn)
+    mod_def.dump()
             
 @fuargs.action
 def gen_cpp(fn, out_fn = None):
@@ -37,10 +38,11 @@ def gen_cpp(fn, out_fn = None):
         print(f"can't find module {mod_name}, load failed")
         return
     mod = globals()[mod_name]
-    mod_defs = pybx_parser.parse_module(mod)
+    mod_def = pybx_parser.parse_module(mod)
+    pybx_parser.find_declaration_order(mod_def, fn)
 
     out_fd = open(out_fn, "w") if isinstance(out_fn, str) else sys.stdout
-    codegen_cpp.generate_cpp_file(mod_defs, out_fd, fn)
+    codegen_cpp.generate_cpp_file(mod_def, out_fd, fn)
     return 0
 
 @fuargs.action
