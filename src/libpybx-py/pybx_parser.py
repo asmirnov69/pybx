@@ -105,11 +105,11 @@ class Type:
             ret = "[]";
         elif self.is_ptr_type():
             i_t = t.__args__[0]
-            ret = f"{i_t.__module__}::{i_t.__name__}Ptr"
+            ret = f"new {i_t.__name__}Ptr()"
         elif self.is_enum():
             ret = f"{t.__module__}::{t.__name__}"
         elif self.py_type in fundamental_types:
-            ret = fundamental_types[self.py_type]
+            ret = "null"
         else:
             raise Exception(f"can't get cpp_code_name for type {self.py_type}")
         return ret

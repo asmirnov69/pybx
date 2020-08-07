@@ -24,7 +24,7 @@ class HelloI(backend.Hello):
     async def reformatGreetings(self, gs):
         print("HelloI::reformatGreetings:", gs)
         for g in gs:
-            g['color'] = backend.Color.GREEN
+            g.color = backend.Color.GREEN
         return gs
     
 @fuargs.action

@@ -12,7 +12,7 @@ export class DataFrame extends libpybx.dataclass {
 export class DFWUPC extends libpybx.dataclass {
   constructor(df, update_c) {
   super();
-    this.df = df;
+    this.df = df === undefined ? new DataFrame() : df;
     this.update_c = update_c;
   }
 };
@@ -98,7 +98,7 @@ export class DFTest
     return this.get_df();
   }
    if (method == 'subscribe') {
-    let arg_0 = args.ptr;
+    let arg_0 = libpybx.from_json(args.ptr, new ObserverPtr());
     return this.subscribe(arg_0);
   }
   throw new Error("unknown method " + method)
@@ -112,7 +112,7 @@ export class Observer
    __call_method(method, args) {
       method = method.split("__")[1];
    if (method == 'show') {
-    let arg_0 = args.df;
+    let arg_0 = libpybx.from_json(args.df, new DFWUPC());
     return this.show(arg_0);
   }
   throw new Error("unknown method " + method)

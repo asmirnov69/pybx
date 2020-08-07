@@ -112,16 +112,16 @@ export function to_json_string(o) {
     return JSON.stringify(o, obj_ptr_replacer);
 }
 
-export function from_json(o, o_json) {
-    if (o instanceof dataclass) {
-	for (let [k, v] of Object.entries(o)) {
-	    console.log(k, o[k], o_json[k]);
-	    if (v instanceof dataclass) {
-		from_json(o[k], o_json[k]);
+export function from_json(o, o_tmpl) {
+    if (o_tmpl instanceof dataclass) {
+	for (let k of Object.keys(o)) {
+	    if (o_tmpl[k] instanceof dataclass) {
+		o_tmpl[k] = from_json(o[k], o_tmpl[k]);
 	    } else {
-		o[k] = o_json[k];
+		o_tmpl[k] = o[k];
 	    }
 	}
+	return o_tmpl;
     }
     return o;
 }

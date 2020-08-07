@@ -20,12 +20,11 @@ class App extends React.Component {
     componentDidMount() {
 	let ws_url = "ws://localhost:8080/";
 	let object_id = "hello";
-	this.comm.connect(ws_url, object_id).then(o_ptr => {
-	    this.hello_ptr = new backend.HelloPtr(o_ptr);
+	this.comm.get_ptr(backend.Hello, ws_url, object_id).then(o_ptr => {
+	    this.hello_ptr = o_ptr;
 	}).then(() => {
 	    let hellocb_o = new HelloCBI();
-	    let hellocb_o_ptr = this.comm.add_object(hellocb_o);
-	    let hellocb_ptr = new backend.HelloCBPtr(hellocb_o_ptr);
+	    let hellocb_ptr = this.comm.add_object(hellocb_o);
 	    return this.hello_ptr.register_hello_cb(hellocb_ptr);
 	}).then(res => {
 	    console.log("register_hello_cb: ", res);	    

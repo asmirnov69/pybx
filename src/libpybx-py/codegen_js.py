@@ -17,7 +17,11 @@ def generate_struct_def(struct_def, out_fd):
     for m_def in struct_def.fields:
         #ipdb.set_trace()
         m_name = m_def.get_member_name()
-        print(f"    this.{m_name} = {m_name};", file = out_fd);
+        if m_def.get_member_type().is_struct():
+            m_type = m_def.get_member_type().get_js_code_name()
+            print(f"    this.{m_name} = {m_name} === undefined ? {m_type} : {m_name};", file = out_fd);
+        else:
+            print(f"    this.{m_name} = {m_name};", file = out_fd);
     print("  }", file = out_fd)
     print("};", file = out_fd)
 
@@ -74,8 +78,9 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"   if (method == '{m_def.name}') {{", file = out_fd)
         call_args_l = []
         arg_i = 0;
-        for m_arg in m_def.get_method_args():
-            print(f"    let arg_{arg_i} = args.{m_arg};", file = out_fd)
+        for m_arg, m_arg_type in zip(m_def.get_method_args(), m_def.get_method_arg_types()):
+            m_arg_type_tmpl = m_arg_type.get_js_code_name()
+            print(f"    let arg_{arg_i} = libpybx.from_json(args.{m_arg}, {m_arg_type_tmpl});", file = out_fd)
             call_args_l.append(f"arg_{arg_i}")
             arg_i += 1
         call_args = ",".join(call_args_l)
