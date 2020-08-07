@@ -56,7 +56,7 @@ private:
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string ws_url;
+  std::string __interface_type{"Blotter.DFTestPtr"};
   DFTestPtr();
   DFTestPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
   DFTestPtr(pybx::Communicator* comm, const std::string& object_id);
@@ -69,7 +69,7 @@ template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTestPtr>()
 {
  static const StructDescriptor sd = {
    make_member_descriptor("object_id", &Blotter::DFTestPtr::object_id),
-   make_member_descriptor("ws_url", &Blotter::DFTestPtr::ws_url),
+   make_member_descriptor("__interface_type", &Blotter::DFTestPtr::__interface_type),
  };
  return sd;
 }
@@ -80,7 +80,7 @@ private:
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string ws_url;
+  std::string __interface_type{"Blotter.ObserverPtr"};
   ObserverPtr();
   ObserverPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
   ObserverPtr(pybx::Communicator* comm, const std::string& object_id);
@@ -92,7 +92,7 @@ template <> inline StructDescriptor get_struct_descriptor<Blotter::ObserverPtr>(
 {
  static const StructDescriptor sd = {
    make_member_descriptor("object_id", &Blotter::ObserverPtr::object_id),
-   make_member_descriptor("ws_url", &Blotter::ObserverPtr::ws_url),
+   make_member_descriptor("__interface_type", &Blotter::ObserverPtr::__interface_type),
  };
  return sd;
 }
@@ -129,7 +129,7 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Blotter:
 template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTest__get_df::return_t>()
 {
  static const StructDescriptor sd = {
-  make_member_descriptor("ret", &Blotter::DFTest__get_df::return_t::retval),
+  make_member_descriptor("retval", &Blotter::DFTest__get_df::return_t::retval),
  };
  return sd;
 }
@@ -163,7 +163,7 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Blotter:
 template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTest__subscribe::return_t>()
 {
  static const StructDescriptor sd = {
-  make_member_descriptor("ret", &Blotter::DFTest__subscribe::return_t::retval),
+  make_member_descriptor("retval", &Blotter::DFTest__subscribe::return_t::retval),
  };
  return sd;
 }
@@ -204,7 +204,7 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Request<Blotter:
 template <> inline StructDescriptor get_struct_descriptor<Blotter::Observer__show::return_t>()
 {
  static const StructDescriptor sd = {
-  make_member_descriptor("ret", &Blotter::Observer__show::return_t::retval),
+  make_member_descriptor("retval", &Blotter::Observer__show::return_t::retval),
  };
  return sd;
 }
@@ -222,7 +222,6 @@ const std::string& ws_url, const std::string& object_id)
 {
  this->comm = comm;
  this->ws = ws;
- this->ws_url = ws_url;
  this->object_id = object_id;
 }
 inline DFTestPtr::DFTestPtr(pybx::Communicator* comm, const std::string& object_id)
@@ -235,11 +234,9 @@ inline void DFTestPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSo
     {
       this->comm = c;
       if (this->ws == nullptr) {
-        if (ws_url == "") {
-          this->ws = ws;
-        } else {
+        this->ws = ws;
+      } else {
           throw runtime_error("DFTestPtr::activate: not implemented for universal ptr");
-        }
       }
     }
     
@@ -306,7 +303,6 @@ const std::string& ws_url, const std::string& object_id)
 {
  this->comm = comm;
  this->ws = ws;
- this->ws_url = ws_url;
  this->object_id = object_id;
 }
 inline ObserverPtr::ObserverPtr(pybx::Communicator* comm, const std::string& object_id)
@@ -319,11 +315,9 @@ inline void ObserverPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::Web
     {
       this->comm = c;
       if (this->ws == nullptr) {
-        if (ws_url == "") {
-          this->ws = ws;
-        } else {
+        this->ws = ws;
+      } else {
           throw runtime_error("ObserverPtr::activate: not implemented for universal ptr");
-        }
       }
     }
     

@@ -100,7 +100,7 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print("  std::shared_ptr<ix::WebSocket> ws;", file = out_fd)
     print("public:", file = out_fd)
     print("  std::string object_id;", file = out_fd)
-    print("  std::string ws_url;", file = out_fd)
+    print(f"  std::string __interface_type{{\"{cpp_namespace}.{class_name}\"}};", file = out_fd)
     print(f"  {class_name}();", file = out_fd)
     print(f"  {class_name}(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
     print(f"  {class_name}(pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
@@ -121,7 +121,7 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print("{", file = out_fd)
     print(" static const StructDescriptor sd = {", file = out_fd)
     print(f"   make_member_descriptor(\"object_id\", &{cpp_namespace}::{class_name}::object_id),", file = out_fd)
-    print(f"   make_member_descriptor(\"ws_url\", &{cpp_namespace}::{class_name}::ws_url),", file = out_fd)
+    print(f"   make_member_descriptor(\"__interface_type\", &{cpp_namespace}::{class_name}::__interface_type),", file = out_fd)
     print(" };", file = out_fd)
     print(" return sd;", file = out_fd)
     print("}", file = out_fd)
@@ -187,7 +187,7 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(f"template <> inline StructDescriptor get_struct_descriptor<{cpp_namespace}::{method_impl_class_name}::return_t>()", file = out_fd)
         print("{", file = out_fd)
         print(" static const StructDescriptor sd = {", file = out_fd)
-        print(f"  make_member_descriptor(\"ret\", &{cpp_namespace}::{method_impl_class_name}::return_t::retval),", file = out_fd)
+        print(f"  make_member_descriptor(\"retval\", &{cpp_namespace}::{method_impl_class_name}::return_t::retval),", file = out_fd)
         print(" };", file = out_fd)
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
@@ -211,7 +211,6 @@ def generate_interface_client_definitions(interface_def, out_fd):
     print("{", file = out_fd)
     print(" this->comm = comm;", file = out_fd)
     print(" this->ws = ws;", file = out_fd)
-    print(" this->ws_url = ws_url;", file = out_fd)
     print(" this->object_id = object_id;", file = out_fd)
     print("}", file = out_fd)
     print(f"inline {class_name}::{class_name}(pybx::Communicator* comm, const std::string& object_id)", file = out_fd)
@@ -225,11 +224,9 @@ def generate_interface_client_definitions(interface_def, out_fd):
     {{
       this->comm = c;
       if (this->ws == nullptr) {{
-        if (ws_url == "") {{
-          this->ws = ws;
-        }} else {{
+        this->ws = ws;
+      }} else {{
           throw runtime_error("{class_name}::activate: not implemented for universal ptr");
-        }}
       }}
     }}
     """
