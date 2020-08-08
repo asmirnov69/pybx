@@ -7,18 +7,18 @@ using namespace std;
 
 #include "backend.h"
 
-class HelloI : public Hello
+class HelloI : public backend::Hello
 {
 private:
-  vector<HelloCBPtr> cbs;
+  vector<backend::HelloCBPtr> cbs;
   
 public:
-  Greetings sayHello(string weSay) override;
-  GreetingsSeq reformatGreetings(GreetingsSeq gs) override;
-  string register_hello_cb(HelloCBPtr) override;
+  backend::Greetings sayHello(string weSay) override;
+  vector<backend::Greetings> reformatGreetings(vector<backend::Greetings> gs) override;
+  string register_hello_cb(backend::HelloCBPtr) override;
 };
 
-class HelloCBI : public HelloCB
+class HelloCBI : public backend::HelloCB
 {
 public:
   string confirmHello(string hello) override;

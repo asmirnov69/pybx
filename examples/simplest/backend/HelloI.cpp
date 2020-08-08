@@ -7,13 +7,13 @@ string HelloCBI::confirmHello(string hello)
   return string("confirmed: ") + hello;
 }
 
-string HelloI::register_hello_cb(HelloCBPtr cb_ptr)
+string HelloI::register_hello_cb(backend::HelloCBPtr cb_ptr)
 {
   cbs.push_back(cb_ptr);
   return "hkjhjhk";
 }
 
-Greetings HelloI::sayHello(string weSay) {
+backend::Greetings HelloI::sayHello(string weSay) {
   cout << "HelloI::sayHello, size of cbs: " << cbs.size() << endl;
   for (auto& cb: cbs) {
     //cout << cb.ws << endl;
@@ -30,20 +30,20 @@ Greetings HelloI::sayHello(string weSay) {
     throw runtime_error(m.str());
   }
   cout << "Hello::sayHello" << endl;
-  Greetings ret;
+  backend::Greetings ret;
   ret.language = "english";
   ret.text = "Hello";
-  ret.color = Color::NORMAL;
+  ret.color = backend::Color::NORMAL;
   //sleep(100);
   return ret;
 }
 
-GreetingsSeq HelloI::reformatGreetings(GreetingsSeq gs)
+vector<backend::Greetings> HelloI::reformatGreetings(vector<backend::Greetings> gs)
 {
   cout << "HelloI::reformatGreetings: " << gs.size() << " greetings" << endl;
   for (auto& el: gs) {
     el.text = el.text + " " + el.text;
-    el.color = Color::RED;
+    el.color = backend::Color::RED;
   }
   return gs;
 }

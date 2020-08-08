@@ -54,28 +54,31 @@ def generate_struct_def(struct_def, out_fd):
 def generate_enum_def(enum_def, out_fd):
     #enum def
     #ipdb.set_trace()
+    cpp_namespace = enum_def.def_type.__module__
+    print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"enum class {enum_def.name} {{", file = out_fd);
     for m_name, m_value in zip(enum_def.members, enum_def.member_values):
         print(f"{m_name} = {m_value},", file = out_fd)
     print("};", file = out_fd)
+    print(f"}}", file = out_fd)
 
     # get_enum_value_string
-    print(f"template <> inline std::string get_enum_value_string<{enum_def.name}>({enum_def.name} v) {{", file = out_fd)
+    print(f"template <> inline std::string get_enum_value_string<{cpp_namespace}::{enum_def.name}>({cpp_namespace}::{enum_def.name} v) {{", file = out_fd)
     print(" std::string ret;", file = out_fd)
     print(" switch (v) {", file = out_fd)
     for m_name, m_value in zip(enum_def.members, enum_def.member_values):
-        print(f"  case {enum_def.name}::{m_name}: ret = \"{m_name}\"; break;", file = out_fd)
+        print(f"  case {cpp_namespace}::{enum_def.name}::{m_name}: ret = \"{m_name}\"; break;", file = out_fd)
     print("  }", file = out_fd)
     print(" return ret;", file = out_fd)
     print("}", file = out_fd)
 
     # set_enum_value
-    print(f"template <> inline void set_enum_value<{enum_def.name}>({enum_def.name}* v, const std::string& new_v)", file = out_fd)
+    print(f"template <> inline void set_enum_value<{cpp_namespace}::{enum_def.name}>({cpp_namespace}::{enum_def.name}* v, const std::string& new_v)", file = out_fd)
     print("{", file = out_fd)
     m_name = enum_def.members[0]
-    print(f" if (new_v == \"{m_name}\") *v = {enum_def.name}::{m_name};", file = out_fd)
+    print(f" if (new_v == \"{m_name}\") *v = {cpp_namespace}::{enum_def.name}::{m_name};", file = out_fd)
     for m_name in enum_def.members[1:]:
-        print(f" else if (new_v == \"{m_name}\") *v = {enum_def.name}::{m_name};", file = out_fd)
+        print(f" else if (new_v == \"{m_name}\") *v = {cpp_namespace}::{enum_def.name}::{m_name};", file = out_fd)
     print(" else {", file = out_fd)
     print("  std::ostringstream m;", file = out_fd)
     print(f"  m << \"set_enum_value for {enum_def.name}: unknown string \" << new_v;", file = out_fd)
