@@ -26,8 +26,8 @@ def generate_struct_def(struct_def, out_fd):
     print("};", file = out_fd)
 
 def generate_interface_client_declarations(interface_def, out_fd):
-    class_name = interface_def.name + "Ptr"
-    print(f"export class {class_name} extends libpybx.ObjectPtr {{", file = out_fd)
+    class_name = interface_def.name + "_rop"
+    print(f"export class {class_name} extends libpybx.Object_rop {{", file = out_fd)
     print(f"  get_type_name() {{ return '{interface_def.def_type.__module__}.{interface_def.name}'; }}", file = out_fd)
     print("  constructor(comm, ws, object_id) {", file = out_fd)
     print("     super(comm, ws, object_id);", file = out_fd)
@@ -71,7 +71,7 @@ def generate_interface_client_declarations(interface_def, out_fd):
 def generate_interface_server_declarations(interface_def, out_fd):
     print(f"export class {interface_def.name}", file = out_fd)
     print("{", file = out_fd)
-    print(f"  get_ptr_type() {{ return {interface_def.name}Ptr; }}", file = out_fd)
+    print(f"  get_rop_type() {{ return {interface_def.name}_rop; }}", file = out_fd)
     print("   __call_method(method, args) {", file = out_fd)
     print("      method = method.split(\"__\")[1];", file = out_fd)
     for m_def in interface_def.methods:

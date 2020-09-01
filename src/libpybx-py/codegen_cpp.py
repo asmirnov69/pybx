@@ -90,12 +90,12 @@ def generate_interface_client_forward_declarations(module_def, out_fd):
     cpp_namespace = module_def.name
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     for interface_def in module_def.interfaces:
-        print(f"class {interface_def.name}Ptr;", file = out_fd)
+        print(f"class {interface_def.name}_rop;", file = out_fd)
     print("}", file = out_fd)
         
 def generate_interface_client_declarations(interface_def, out_fd):
     cpp_namespace = interface_def.def_type.__module__
-    class_name = interface_def.name + "Ptr"
+    class_name = interface_def.name + "_rop"
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"class {class_name} {{", file = out_fd)
     print("private:", file = out_fd)
@@ -119,7 +119,7 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print(f"}};", file = out_fd)
     print(f"}}", file = out_fd)
 
-    # get_struct_descriptor for Ptr class
+    # get_struct_descriptor for rop class
     print(f"template <> inline StructDescriptor get_struct_descriptor<{cpp_namespace}::{class_name}>()", file = out_fd)
     print("{", file = out_fd)
     print(" static const StructDescriptor sd = {", file = out_fd)
@@ -134,7 +134,7 @@ def generate_interface_server_declarations(interface_def, out_fd):
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"class {interface_def.name} : public pybx::Object {{", file = out_fd)
     print("public:", file = out_fd)
-    print(f" typedef {interface_def.name}Ptr ptr;", file = out_fd)
+    print(f" typedef {interface_def.name}_rop rop_t;", file = out_fd)
     #ipdb.set_trace()
     for m_def in interface_def.methods:
         m_cpp_ret_type = m_def.get_method_return_type().get_cpp_code_name()
@@ -202,7 +202,7 @@ def generate_interface_server_declarations(interface_def, out_fd):
 
 def generate_interface_client_definitions(interface_def, out_fd):
     cpp_namespace = interface_def.def_type.__module__    
-    class_name = f"{interface_def.name}Ptr"
+    class_name = f"{interface_def.name}_rop"
     
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"inline {class_name}::{class_name}()", file = out_fd)
@@ -229,7 +229,7 @@ def generate_interface_client_definitions(interface_def, out_fd):
       if (this->ws == nullptr) {{
         this->ws = ws;
       }} else {{
-          throw runtime_error("{class_name}::activate: not implemented for universal ptr");
+          throw runtime_error("{class_name}::activate: not implemented for universal rop");
       }}
     }}
     """
@@ -240,8 +240,8 @@ def generate_interface_client_definitions(interface_def, out_fd):
 
     print(f"}} // end of namespace", file = out_fd)
         
-def generate_interface_client_method_definition(ptr_class_name, interface_class_name, m_def, out_fd):
-    # Ptr methods
+def generate_interface_client_method_definition(rop_class_name, interface_class_name, m_def, out_fd):
+    # rop methods
     method_impl_class_name = f"{interface_class_name}__{m_def.name}"
     m_args_l = []
     for t, n in zip(m_def.get_method_arg_types(), m_def.get_method_args()):
@@ -251,9 +251,9 @@ def generate_interface_client_method_definition(ptr_class_name, interface_class_
     m_ret_type = m_def.get_method_return_type().get_cpp_code_name()
     disable_void_return = "//" if m_ret_type == "void" else ""
     req_args_assignments = ";\n".join(["req.args." + x + "=" + x for x in m_def.get_method_args()])
-    print(f"inline {m_ret_type} {ptr_class_name}::{m_def.name}({m_args})", file = out_fd)
+    print(f"inline {m_ret_type} {rop_class_name}::{m_def.name}({m_args})", file = out_fd)
     print("{", file = out_fd)
-    ptr_method_template = f"""
+    rop_method_template = f"""
     pybx::Request<{method_impl_class_name}::args_t> req{{
     .message_type = pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
@@ -276,7 +276,7 @@ def generate_interface_client_method_definition(ptr_class_name, interface_class_
     {disable_void_return} ret = res.retval.retval;
     {disable_void_return} return ret;
     """
-    print(ptr_method_template, file = out_fd)
+    print(rop_method_template, file = out_fd)
     print("}", file = out_fd)
 
 def generate_interface_server_method_impls(module_def, interface_def, out_fd):
@@ -291,13 +291,13 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     #ipdb.set_trace()
     # activations code below is temp setup capabale to handle
     # use-case of server callbacks only. More reigirous type support required
-    # to support all possible combinations like vector of ptrs, returns of ptr
+    # to support all possible combinations like vector of rops, returns of rop
     # etc
     activations = []
     if 1:
         args_with_activation = []
         for arg, arg_type in zip(m_def.get_method_args(), m_def.get_method_arg_types()):
-            if arg_type.is_ptr_type():
+            if arg_type.is_rop_type():
                 activations.append(f"req.args.{arg}.activate(comm, ws);")
     activations_code = "\n".join(activations)
 

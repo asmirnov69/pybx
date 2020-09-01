@@ -71,7 +71,7 @@ private:
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string __interface_type{"backend.HelloPtr"};
+  std::string __interface_type{"backend.Hello_rop"};
   Hello_rop();
   Hello_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
   Hello_rop(pybx::Communicator* comm, const std::string& object_id);
@@ -226,8 +226,8 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Response<backend
 namespace backend {
 class HelloCB : public pybx::Object {
 public:
-  typedef HelloCB_rop rop_t;
-  virtual string confirmHello(string hello) = 0;
+ typedef HelloCB_rop rop_t;
+ virtual string confirmHello(string hello) = 0;
 };
 }
 namespace backend {

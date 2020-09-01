@@ -268,6 +268,7 @@ inline Blotter::DFWUPC DFTest_rop::get_df()
 }
 inline void DFTest_rop::subscribe(Blotter::Observer_rop rop)
 {
+
     pybx::Request<DFTest__subscribe::args_t> req{
     .message_type = pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
@@ -420,6 +421,7 @@ UNIQUE = pybx::RemoteMethods::register_method("DFTest__subscribe", std::make_sha
 namespace Blotter {
 inline void Observer__show::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
+
     ostringstream res_os;
     try {
       pybx::Request<args_t> req;
