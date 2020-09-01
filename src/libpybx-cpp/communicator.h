@@ -64,19 +64,19 @@ namespace pybx {
     void check_response(message_type_t msg_type, const string& msg);
     
     template <class OBJ_T>
-    typename OBJ_T::ptr
-    get_ptr(const string& ws_url, const string& object_id) {
+    typename OBJ_T::rop_t
+    get_rop(const string& ws_url, const string& object_id) {
       auto ws = this->connect(ws_url, object_id);
-      typename OBJ_T::ptr ret(this, ws, ws_url, object_id);
+      typename OBJ_T::rop_t ret(this, ws, ws_url, object_id);
       return ret;
     }
 
     template <class OBJ_T>
-    typename OBJ_T::ptr
+    typename OBJ_T::rop_t
     add_object(shared_ptr<Object> o, const string& object_id = "")
     {
       string real_object_id = this->add_object(o, object_id);
-      typename OBJ_T::ptr ret(this, real_object_id);
+      typename OBJ_T::rop_t ret(this, real_object_id);
       return ret;
     }
   };

@@ -16,7 +16,7 @@ export class DFWUPC extends libpybx.dataclass {
     this.update_c = update_c;
   }
 };
-export class DFTestPtr extends libpybx.ObjectPtr {
+export class DFTest_rop extends libpybx.Object_rop {
   get_type_name() { return 'Blotter.DFTest'; }
   constructor(comm, ws, object_id) {
      super(comm, ws, object_id);
@@ -42,7 +42,7 @@ export class DFTestPtr extends libpybx.ObjectPtr {
  let ret = libpybx.from_json(ret_json, new DFWUPC());
  return ret; });
  }
-   subscribe(ptr) {
+   subscribe(rop) {
     let p = new Promise((resolve, reject) => {
          let call_req = {
                'message-type': 'method-call',
@@ -50,7 +50,7 @@ export class DFTestPtr extends libpybx.ObjectPtr {
                'object-id': this.object_id,
               'method-signature': 'DFTest__subscribe',
           'args': {
-                 ptr: ptr,
+                 rop: rop,
           }
        };
 	    this.comm.add_message_handler(call_req['message-id'], [resolve, reject]);
@@ -62,7 +62,7 @@ export class DFTestPtr extends libpybx.ObjectPtr {
  return ret; });
  }
 };
-export class ObserverPtr extends libpybx.ObjectPtr {
+export class Observer_rop extends libpybx.Object_rop {
   get_type_name() { return 'Blotter.Observer'; }
   constructor(comm, ws, object_id) {
      super(comm, ws, object_id);
@@ -91,24 +91,24 @@ export class ObserverPtr extends libpybx.ObjectPtr {
 };
 export class DFTest
 {
-  get_ptr_type() { return DFTestPtr; }
+  get_rop_type() { return DFTest_rop; }
    __call_method(method, args) {
       method = method.split("__")[1];
    if (method == 'get_df') {
     return this.get_df();
   }
    if (method == 'subscribe') {
-    let arg_0 = libpybx.from_json(args.ptr, new ObserverPtr());
+    let arg_0 = libpybx.from_json(args.rop, new Observer_rop());
     return this.subscribe(arg_0);
   }
   throw new Error("unknown method " + method)
 }
 get_df() {throw new Error("not implemented");}
-subscribe(ptr) {throw new Error("not implemented");}
+subscribe(rop) {throw new Error("not implemented");}
 };
 export class Observer
 {
-  get_ptr_type() { return ObserverPtr; }
+  get_rop_type() { return Observer_rop; }
    __call_method(method, args) {
       method = method.split("__")[1];
    if (method == 'show') {

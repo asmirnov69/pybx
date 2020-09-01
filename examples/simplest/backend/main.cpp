@@ -12,7 +12,7 @@ int main()
   comm.set_listen_port(port);
   
   shared_ptr<backend::Hello> hello_o = make_shared<HelloI>();
-  auto hello_ptr = comm.add_object<backend::Hello>(hello_o, "hello");
+  auto hello_rop = comm.add_object<backend::Hello>(hello_o, "hello");
   
   cout << "server start" << endl;
   comm.run();

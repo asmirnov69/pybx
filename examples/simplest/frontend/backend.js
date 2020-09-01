@@ -10,7 +10,7 @@ export class Greetings extends libpybx.dataclass {
     this.color = color;
   }
 };
-export class HelloPtr extends libpybx.ObjectPtr {
+export class Hello_rop extends libpybx.Object_rop {
   get_type_name() { return 'backend.Hello'; }
   constructor(comm, ws, object_id) {
      super(comm, ws, object_id);
@@ -77,7 +77,7 @@ export class HelloPtr extends libpybx.ObjectPtr {
  return ret; });
  }
 };
-export class HelloCBPtr extends libpybx.ObjectPtr {
+export class HelloCB_rop extends libpybx.Object_rop {
   get_type_name() { return 'backend.HelloCB'; }
   constructor(comm, ws, object_id) {
      super(comm, ws, object_id);
@@ -106,7 +106,7 @@ export class HelloCBPtr extends libpybx.ObjectPtr {
 };
 export class Hello
 {
-  get_ptr_type() { return HelloPtr; }
+  get_rop_type() { return Hello_rop; }
    __call_method(method, args) {
       method = method.split("__")[1];
    if (method == 'reformatGreetings') {
@@ -114,7 +114,7 @@ export class Hello
     return this.reformatGreetings(arg_0);
   }
    if (method == 'register_hello_cb') {
-    let arg_0 = libpybx.from_json(args.cb, new HelloCBPtr());
+    let arg_0 = libpybx.from_json(args.cb, new HelloCB_rop());
     return this.register_hello_cb(arg_0);
   }
    if (method == 'sayHello') {
@@ -129,7 +129,7 @@ sayHello(weSay) {throw new Error("not implemented");}
 };
 export class HelloCB
 {
-  get_ptr_type() { return HelloCBPtr; }
+  get_rop_type() { return HelloCB_rop; }
    __call_method(method, args) {
       method = method.split("__")[1];
    if (method == 'confirmHello') {

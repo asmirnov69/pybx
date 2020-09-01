@@ -46,62 +46,62 @@ template <> inline StructDescriptor get_struct_descriptor<Blotter::DFWUPC>()
  return sd;
 }
 namespace Blotter {
-class DFTestPtr;
-class ObserverPtr;
+class DFTest_rop;
+class Observer_rop;
 }
 namespace Blotter {
-class DFTestPtr {
+class DFTest_rop {
 private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string __interface_type{"Blotter.DFTestPtr"};
-  DFTestPtr();
-  DFTestPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  DFTestPtr(pybx::Communicator* comm, const std::string& object_id);
+  std::string __interface_type{"Blotter.DFTest_rop"};
+  DFTest_rop();
+  DFTest_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  DFTest_rop(pybx::Communicator* comm, const std::string& object_id);
   void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   Blotter::DFWUPC get_df();
-  void subscribe(Blotter::ObserverPtr ptr);
+  void subscribe(Blotter::Observer_rop rop);
 };
 }
-template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTestPtr>()
+template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTest_rop>()
 {
  static const StructDescriptor sd = {
-   make_member_descriptor("object_id", &Blotter::DFTestPtr::object_id),
-   make_member_descriptor("__interface_type", &Blotter::DFTestPtr::__interface_type),
+   make_member_descriptor("object_id", &Blotter::DFTest_rop::object_id),
+   make_member_descriptor("__interface_type", &Blotter::DFTest_rop::__interface_type),
  };
  return sd;
 }
 namespace Blotter {
-class ObserverPtr {
+class Observer_rop {
 private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string __interface_type{"Blotter.ObserverPtr"};
-  ObserverPtr();
-  ObserverPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  ObserverPtr(pybx::Communicator* comm, const std::string& object_id);
+  std::string __interface_type{"Blotter.Observer_rop"};
+  Observer_rop();
+  Observer_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  Observer_rop(pybx::Communicator* comm, const std::string& object_id);
   void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   void show(Blotter::DFWUPC df);
 };
 }
-template <> inline StructDescriptor get_struct_descriptor<Blotter::ObserverPtr>()
+template <> inline StructDescriptor get_struct_descriptor<Blotter::Observer_rop>()
 {
  static const StructDescriptor sd = {
-   make_member_descriptor("object_id", &Blotter::ObserverPtr::object_id),
-   make_member_descriptor("__interface_type", &Blotter::ObserverPtr::__interface_type),
+   make_member_descriptor("object_id", &Blotter::Observer_rop::object_id),
+   make_member_descriptor("__interface_type", &Blotter::Observer_rop::__interface_type),
  };
  return sd;
 }
 namespace Blotter {
 class DFTest : public pybx::Object {
 public:
- typedef DFTestPtr ptr;
+ typedef DFTest_rop rop_t;
  virtual Blotter::DFWUPC get_df() = 0;
- virtual void subscribe(Blotter::ObserverPtr ptr) = 0;
+ virtual void subscribe(Blotter::Observer_rop rop) = 0;
 };
 }
 namespace Blotter {
@@ -141,7 +141,7 @@ namespace Blotter {
 struct DFTest__subscribe : public pybx::method_impl
 {
  struct args_t {
- Blotter::ObserverPtr ptr;
+ Blotter::Observer_rop rop;
  };
  struct return_t {
    json_null_t retval;
@@ -152,7 +152,7 @@ struct DFTest__subscribe : public pybx::method_impl
 template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTest__subscribe::args_t>()
 {
  static const StructDescriptor sd = {
-  make_member_descriptor("ptr", &Blotter::DFTest__subscribe::args_t::ptr),
+  make_member_descriptor("rop", &Blotter::DFTest__subscribe::args_t::rop),
  };
  return sd;
 }
@@ -174,7 +174,7 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Response<Blotter
 namespace Blotter {
 class Observer : public pybx::Object {
 public:
- typedef ObserverPtr ptr;
+ typedef Observer_rop rop_t;
  virtual void show(Blotter::DFWUPC df) = 0;
 };
 }
@@ -213,10 +213,10 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Response<Blotter
  return get_StructDescriptor_T<Blotter::Observer__show::return_t, pybx::Response>::get_struct_descriptor();
 }
 namespace Blotter {
-inline DFTestPtr::DFTestPtr()
+inline DFTest_rop::DFTest_rop()
 {
 }
-inline DFTestPtr::DFTestPtr(pybx::Communicator* comm,
+inline DFTest_rop::DFTest_rop(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -224,23 +224,23 @@ const std::string& ws_url, const std::string& object_id)
  this->ws = ws;
  this->object_id = object_id;
 }
-inline DFTestPtr::DFTestPtr(pybx::Communicator* comm, const std::string& object_id)
+inline DFTest_rop::DFTest_rop(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void DFTestPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void DFTest_rop::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
       if (this->ws == nullptr) {
         this->ws = ws;
       } else {
-          throw runtime_error("DFTestPtr::activate: not implemented for universal ptr");
+          throw runtime_error("DFTest_rop::activate: not implemented for universal rop");
       }
     }
     
-inline Blotter::DFWUPC DFTestPtr::get_df()
+inline Blotter::DFWUPC DFTest_rop::get_df()
 {
 
     pybx::Request<DFTest__get_df::args_t> req{
@@ -266,9 +266,8 @@ inline Blotter::DFWUPC DFTestPtr::get_df()
      return ret;
     
 }
-inline void DFTestPtr::subscribe(Blotter::ObserverPtr ptr)
+inline void DFTest_rop::subscribe(Blotter::Observer_rop rop)
 {
-
     pybx::Request<DFTest__subscribe::args_t> req{
     .message_type = pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
@@ -277,7 +276,7 @@ inline void DFTestPtr::subscribe(Blotter::ObserverPtr ptr)
       .args = DFTest__subscribe::args_t()
       };
 
-    req.args.ptr=ptr;
+    req.args.rop=rop;
     // void ret;
   
     ostringstream json_os;
@@ -294,10 +293,10 @@ inline void DFTestPtr::subscribe(Blotter::ObserverPtr ptr)
 }
 } // end of namespace
 namespace Blotter {
-inline ObserverPtr::ObserverPtr()
+inline Observer_rop::Observer_rop()
 {
 }
-inline ObserverPtr::ObserverPtr(pybx::Communicator* comm,
+inline Observer_rop::Observer_rop(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -305,23 +304,23 @@ const std::string& ws_url, const std::string& object_id)
  this->ws = ws;
  this->object_id = object_id;
 }
-inline ObserverPtr::ObserverPtr(pybx::Communicator* comm, const std::string& object_id)
+inline Observer_rop::Observer_rop(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void ObserverPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void Observer_rop::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
       if (this->ws == nullptr) {
         this->ws = ws;
       } else {
-          throw runtime_error("ObserverPtr::activate: not implemented for universal ptr");
+          throw runtime_error("Observer_rop::activate: not implemented for universal rop");
       }
     }
     
-inline void ObserverPtr::show(Blotter::DFWUPC df)
+inline void Observer_rop::show(Blotter::DFWUPC df)
 {
 
     pybx::Request<Observer__show::args_t> req{
@@ -391,7 +390,7 @@ inline void DFTest__subscribe::do_call(const string& req_s, string* res_s, share
       pybx::Request<args_t> req;
       from_json(&req, req_s);
 
-      req.args.ptr.activate(comm, ws);
+      req.args.rop.activate(comm, ws);
 
       auto o = comm->find_object(req.object_id);
       auto self = dynamic_pointer_cast<DFTest>(o);
@@ -403,7 +402,7 @@ inline void DFTest__subscribe::do_call(const string& req_s, string* res_s, share
       res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       // res.retval.retval = 
-            self->subscribe(req.args.ptr);
+            self->subscribe(req.args.rop);
       to_json(res_os, res);
     } catch (exception& e) {
       pybx::ExceptionResponse eres;
@@ -421,7 +420,6 @@ UNIQUE = pybx::RemoteMethods::register_method("DFTest__subscribe", std::make_sha
 namespace Blotter {
 inline void Observer__show::do_call(const string& req_s, string* res_s, shared_ptr<ix::WebSocket> ws)
 {
-
     ostringstream res_os;
     try {
       pybx::Request<args_t> req;

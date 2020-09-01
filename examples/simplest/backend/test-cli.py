@@ -8,9 +8,9 @@ pybx.import_pybx("backend")
 async def a_run_client():
     #ipdb.set_trace()
     comm = pybx_comm.Communicator()
-    hello_ptr = await comm.get_ptr(backend.Hello, "ws://localhost:8080/", "hello")
+    hello_rop = await comm.get_rop(backend.Hello, "ws://localhost:8080/", "hello")
 
-    g = await hello_ptr.sayHello("hi")
+    g = await hello_rop.sayHello("hi")
     print("sayHello:", g)
 
 @fuargs.action

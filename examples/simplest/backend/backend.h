@@ -61,63 +61,63 @@ template <> inline StructDescriptor get_struct_descriptor<backend::Greetings>()
  return sd;
 }
 namespace backend {
-class HelloPtr;
-class HelloCBPtr;
+class Hello_rop;
+class HelloCB_rop;
 }
 namespace backend {
-class HelloPtr {
+class Hello_rop {
 private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
   std::string __interface_type{"backend.HelloPtr"};
-  HelloPtr();
-  HelloPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  HelloPtr(pybx::Communicator* comm, const std::string& object_id);
+  Hello_rop();
+  Hello_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  Hello_rop(pybx::Communicator* comm, const std::string& object_id);
   void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   vector<backend::Greetings> reformatGreetings(vector<backend::Greetings> gs);
-  string register_hello_cb(backend::HelloCBPtr cb);
+  string register_hello_cb(backend::HelloCB_rop cb);
   backend::Greetings sayHello(string weSay);
 };
 }
-template <> inline StructDescriptor get_struct_descriptor<backend::HelloPtr>()
+template <> inline StructDescriptor get_struct_descriptor<backend::Hello_rop>()
 {
  static const StructDescriptor sd = {
-   make_member_descriptor("object_id", &backend::HelloPtr::object_id),
-   make_member_descriptor("__interface_type", &backend::HelloPtr::__interface_type),
+   make_member_descriptor("object_id", &backend::Hello_rop::object_id),
+   make_member_descriptor("__interface_type", &backend::Hello_rop::__interface_type),
  };
  return sd;
 }
 namespace backend {
-class HelloCBPtr {
+class HelloCB_rop {
 private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
   std::string object_id;
-  std::string __interface_type{"backend.HelloCBPtr"};
-  HelloCBPtr();
-  HelloCBPtr(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
-  HelloCBPtr(pybx::Communicator* comm, const std::string& object_id);
+  std::string __interface_type{"backend.HelloCB_rop"};
+  HelloCB_rop();
+  HelloCB_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
+  HelloCB_rop(pybx::Communicator* comm, const std::string& object_id);
   void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   string confirmHello(string hello);
 };
 }
-template <> inline StructDescriptor get_struct_descriptor<backend::HelloCBPtr>()
+template <> inline StructDescriptor get_struct_descriptor<backend::HelloCB_rop>()
 {
  static const StructDescriptor sd = {
-   make_member_descriptor("object_id", &backend::HelloCBPtr::object_id),
-   make_member_descriptor("__interface_type", &backend::HelloCBPtr::__interface_type),
+   make_member_descriptor("object_id", &backend::HelloCB_rop::object_id),
+   make_member_descriptor("__interface_type", &backend::HelloCB_rop::__interface_type),
  };
  return sd;
 }
 namespace backend {
 class Hello : public pybx::Object {
 public:
- typedef HelloPtr ptr;
+ typedef Hello_rop rop_t;
  virtual vector<backend::Greetings> reformatGreetings(vector<backend::Greetings> gs) = 0;
- virtual string register_hello_cb(backend::HelloCBPtr cb) = 0;
+ virtual string register_hello_cb(backend::HelloCB_rop cb) = 0;
  virtual backend::Greetings sayHello(string weSay) = 0;
 };
 }
@@ -159,7 +159,7 @@ namespace backend {
 struct Hello__register_hello_cb : public pybx::method_impl
 {
  struct args_t {
- backend::HelloCBPtr cb;
+ backend::HelloCB_rop cb;
  };
  struct return_t {
    string retval;
@@ -226,8 +226,8 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Response<backend
 namespace backend {
 class HelloCB : public pybx::Object {
 public:
- typedef HelloCBPtr ptr;
- virtual string confirmHello(string hello) = 0;
+  typedef HelloCB_rop rop_t;
+  virtual string confirmHello(string hello) = 0;
 };
 }
 namespace backend {
@@ -265,10 +265,10 @@ template <> inline StructDescriptor get_struct_descriptor<pybx::Response<backend
  return get_StructDescriptor_T<backend::HelloCB__confirmHello::return_t, pybx::Response>::get_struct_descriptor();
 }
 namespace backend {
-inline HelloPtr::HelloPtr()
+inline Hello_rop::Hello_rop()
 {
 }
-inline HelloPtr::HelloPtr(pybx::Communicator* comm,
+inline Hello_rop::Hello_rop(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -276,23 +276,23 @@ const std::string& ws_url, const std::string& object_id)
  this->ws = ws;
  this->object_id = object_id;
 }
-inline HelloPtr::HelloPtr(pybx::Communicator* comm, const std::string& object_id)
+inline Hello_rop::Hello_rop(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void HelloPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void Hello_rop::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
       if (this->ws == nullptr) {
         this->ws = ws;
       } else {
-          throw runtime_error("HelloPtr::activate: not implemented for universal ptr");
+          throw runtime_error("Hello_rop::activate: not implemented for universal rop");
       }
     }
     
-inline vector<backend::Greetings> HelloPtr::reformatGreetings(vector<backend::Greetings> gs)
+inline vector<backend::Greetings> Hello_rop::reformatGreetings(vector<backend::Greetings> gs)
 {
 
     pybx::Request<Hello__reformatGreetings::args_t> req{
@@ -318,7 +318,7 @@ inline vector<backend::Greetings> HelloPtr::reformatGreetings(vector<backend::Gr
      return ret;
     
 }
-inline string HelloPtr::register_hello_cb(backend::HelloCBPtr cb)
+inline string Hello_rop::register_hello_cb(backend::HelloCB_rop cb)
 {
 
     pybx::Request<Hello__register_hello_cb::args_t> req{
@@ -344,7 +344,7 @@ inline string HelloPtr::register_hello_cb(backend::HelloCBPtr cb)
      return ret;
     
 }
-inline backend::Greetings HelloPtr::sayHello(string weSay)
+inline backend::Greetings Hello_rop::sayHello(string weSay)
 {
 
     pybx::Request<Hello__sayHello::args_t> req{
@@ -372,10 +372,10 @@ inline backend::Greetings HelloPtr::sayHello(string weSay)
 }
 } // end of namespace
 namespace backend {
-inline HelloCBPtr::HelloCBPtr()
+inline HelloCB_rop::HelloCB_rop()
 {
 }
-inline HelloCBPtr::HelloCBPtr(pybx::Communicator* comm,
+inline HelloCB_rop::HelloCB_rop(pybx::Communicator* comm,
 std::shared_ptr<ix::WebSocket> ws,
 const std::string& ws_url, const std::string& object_id)
 {
@@ -383,23 +383,23 @@ const std::string& ws_url, const std::string& object_id)
  this->ws = ws;
  this->object_id = object_id;
 }
-inline HelloCBPtr::HelloCBPtr(pybx::Communicator* comm, const std::string& object_id)
+inline HelloCB_rop::HelloCB_rop(pybx::Communicator* comm, const std::string& object_id)
 {
  this->comm = comm;
  this->object_id = object_id;
 }
-inline void HelloCBPtr::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
+inline void HelloCB_rop::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)
 
     {
       this->comm = c;
       if (this->ws == nullptr) {
         this->ws = ws;
       } else {
-          throw runtime_error("HelloCBPtr::activate: not implemented for universal ptr");
+          throw runtime_error("HelloCB_rop::activate: not implemented for universal rop");
       }
     }
     
-inline string HelloCBPtr::confirmHello(string hello)
+inline string HelloCB_rop::confirmHello(string hello)
 {
 
     pybx::Request<HelloCB__confirmHello::args_t> req{

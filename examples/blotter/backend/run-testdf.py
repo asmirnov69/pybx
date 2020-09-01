@@ -46,29 +46,29 @@ class DFTestI(Blotter.DFTest):
             df_ret = Utils.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
             return Blotter.DFWUPC(df = df_ret, update_c = self.c)
 
-    async def subscribe(self, ptr):
-        print("DFTestI::subscribe:", ptr)
+    async def subscribe(self, rop):
+        print("DFTestI::subscribe:", rop)
         #ipdb.set_trace()
         with self.df_lock:
-            self.subscribers.append(ptr)
+            self.subscribers.append(rop)
 
     async def publish(self):
         with self.df_lock:
-            for ptr in self.subscribers:
+            for rop in self.subscribers:
                 try:
                     #ipdb.set_trace()
                     df_o = Utils.DataFrame(columns = list(self.df.columns), dataframeJSON = self.df.to_json(orient = 'records'))
                     j = Blotter.DFWUPC(df = df_o, update_c = self.c)
-                    await ptr.show(j)
+                    await rop.show(j)
                 except Exception as e:
-                    print("ptr.show failed", ptr)
+                    print("rop.show failed", rop)
                     print(e)
             
 async def test_coro():
     comm = pybx_comm.Communicator()
-    testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
+    testdf_rop = await comm.get_rop(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
-    df = await testdf_ptr.get_df()
+    df = await testdf_rop.get_df()
     print("dataframe:", df)
 
 @fuargs.action
@@ -77,12 +77,12 @@ def test():
     
 async def test_subscriber_coro():
     comm = pybx_comm.Communicator()
-    testdf_ptr = await comm.get_ptr(Blotter.DFTest, "ws://localhost:8080/", "test_df")
+    testdf_rop = await comm.get_rop(Blotter.DFTest, "ws://localhost:8080/", "test_df")
 
     subscriber_o = ObserverI()
-    subscriber_ptr = comm.add_object(subscriber_o, "uu")
-    await testdf_ptr.subscribe(subscriber_ptr)    
-    
+    subscriber_rop = comm.add_object(subscriber_o, "uu")
+    await testdf_rop.subscribe(subscriber_rop)    
+
 @fuargs.action
 def test_subscriber():
     asyncio.get_event_loop().run_until_complete(test_subscriber_coro())

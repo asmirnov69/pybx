@@ -10,12 +10,12 @@ using namespace std;
 class HelloI : public backend::Hello
 {
 private:
-  vector<backend::HelloCBPtr> cbs;
+  vector<backend::HelloCB_rop> cbs;
   
 public:
   backend::Greetings sayHello(string weSay) override;
   vector<backend::Greetings> reformatGreetings(vector<backend::Greetings> gs) override;
-  string register_hello_cb(backend::HelloCBPtr) override;
+  string register_hello_cb(backend::HelloCB_rop) override;
 };
 
 class HelloCBI : public backend::HelloCB

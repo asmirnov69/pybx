@@ -20,15 +20,15 @@ class App extends React.Component {
     componentDidMount() {
 	let ws_url = "ws://localhost:8080/";
 	let object_id = "hello";
-	this.comm.get_ptr(backend.Hello, ws_url, object_id).then(o_ptr => {
-	    this.hello_ptr = o_ptr;
+	this.comm.get_rop(backend.Hello, ws_url, object_id).then(o_rop => {
+	    this.hello_rop = o_rop;
 	}).then(() => {
 	    let hellocb_o = new HelloCBI();
-	    let hellocb_ptr = this.comm.add_object(hellocb_o);
-	    return this.hello_ptr.register_hello_cb(hellocb_ptr);
+	    let hellocb_rop = this.comm.add_object(hellocb_o);
+	    return this.hello_rop.register_hello_cb(hellocb_rop);
 	}).then(res => {
 	    console.log("register_hello_cb: ", res);	    
-	    return this.hello_ptr.sayHello("hi");
+	    return this.hello_rop.sayHello("hi");
 	}).then(g => {
 	    console.log("server response:", g);
 	    this.setState({...this.state, greeting: g.text});
@@ -40,7 +40,7 @@ class App extends React.Component {
 	let gs = [];
 	gs.push(new backend.Greetings("russian", "privet", "GREEN"));
 	gs.push(new backend.Greetings("german", "halo", "GREEN"));
-	this.hello_ptr.reformatGreetings(gs).then(ret => {
+	this.hello_rop.reformatGreetings(gs).then(ret => {
 	    this.setState({...this.state, greeting2: gs.length},
 			  () => {this.pb.disabled = false; });
 	});

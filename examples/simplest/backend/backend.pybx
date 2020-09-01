@@ -19,11 +19,11 @@ GreetingsSeq = typing.List[Greetings]
 class Hello(pybx.interface):
     def sayHello(self, weSay: str) -> Greetings: []
     def reformatGreetings(self, gs: GreetingsSeq) -> GreetingsSeq: []
-    def register_hello_cb(self, cb: HelloCBPtr) -> str: []
+    def register_hello_cb(self, cb: HelloCB_rop) -> str: []
    
 class HelloCB(pybx.interface):
     def confirmHello(self, hello: str) -> str: []
 
-HelloCBPtr = pybx.ObjectPtr[HelloCB]
+HelloCB_rop = pybx.ROP[HelloCB]
 #HelloCBPtrSeq = typing.List[HelloCBPtr]
 

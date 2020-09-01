@@ -50,7 +50,7 @@ class Type:
     def is_vector_type(self):
         return hasattr(self.py_type, '_name') and self.py_type._name == 'List'
 
-    def is_ptr_type(self):
+    def is_rop_type(self):
         return hasattr(self.py_type, '_name') and self.py_type._name == 'object'
 
     def is_struct(self):
@@ -84,9 +84,9 @@ class Type:
             value_type = self.py_type.__args__[0]
             value_type_cpp_code_name = Type(value_type).get_cpp_code_name()
             ret = f"vector<{value_type_cpp_code_name}>"
-        elif self.is_ptr_type():
+        elif self.is_rop_type():
             i_t = t.__args__[0]
-            ret = f"{i_t.__module__}::{i_t.__name__}Ptr"
+            ret = f"{i_t.__module__}::{i_t.__name__}_rop"
         elif self.is_enum():
             ret = f"{t.__module__}::{t.__name__}"
         elif self.py_type in fundamental_types:
@@ -103,9 +103,9 @@ class Type:
             ret = f"new {t.__name__}()"
         elif self.is_vector_type():
             ret = "[]";
-        elif self.is_ptr_type():
+        elif self.is_rop_type():
             i_t = t.__args__[0]
-            ret = f"new {i_t.__name__}Ptr()"
+            ret = f"new {i_t.__name__}_rop()"
         elif self.is_enum():
             ret = f"{t.__module__}::{t.__name__}"
         elif self.py_type in fundamental_types:

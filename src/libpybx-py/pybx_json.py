@@ -19,7 +19,7 @@ def to_json__(o):
         ret = dataclass_to_json(o)
     elif isinstance(o, enum.Enum):
         ret = o.name
-    elif isinstance(o, pybx_td.ptr_impl_base):
+    elif isinstance(o, pybx_td.rop_impl_base):
         #ipdb.set_trace()
         interface_type = pybx_td.get_interface_type(type(o))
         type_s = f"{interface_type.__module__}.{interface_type.__name__}"
@@ -42,12 +42,12 @@ def from_json(o_json, o_ann_type):
         el_type = o_ann_type.py_type.__args__[0]
         for o_json_el in o_json:
             ret.append(from_json(o_json_el, el_type))
-    elif o_ann_type.is_ptr_type():
+    elif o_ann_type.is_rop_type():
         #ipdb.set_trace()
         interface_type = o_ann_type.py_type.__args__[0]
         assert(o_json['__interface_type'] == f"{interface_type.__module__}.{interface_type.__name__}")
-        ptr_type = pybx_td.get_interface_ptr_type(interface_type)
-        ret = ptr_type(None, None, o_json['object_id'])
+        rop_type = pybx_td.get_interface_rop_type(interface_type)
+        ret = rop_type(None, None, o_json['object_id'])
     elif o_ann_type.is_struct():
         dflt_args = {f.name:None for f in dataclasses.fields(o_ann_type.py_type)}
         ret = o_ann_type.py_type(**dflt_args)

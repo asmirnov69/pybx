@@ -65,19 +65,19 @@ class Communicator:
         with self.objects_lock:
             self.objects__[object_id] = o
             interface_type = type(o).__bases__[0]
-            interface_ptr_type = pybx_td.get_interface_ptr_type(interface_type)
-            return interface_ptr_type(self, None, object_id)
+            interface_rop_type = pybx_td.get_interface_rop_type(interface_type)
+            return interface_rop_type(self, None, object_id)
 
     def start_server(self, port):
         return websockets.serve(self.ws_handler_f.server_message_loop,
                                 'localhost', port)
 
-    async def get_ptr(self, interface_type, ws_url, object_id):
+    async def get_rop(self, interface_type, ws_url, object_id):
         #ipdb.set_trace()
-        interface_ptr_type = pybx_td.get_interface_ptr_type(interface_type)
+        interface_rop_type = pybx_td.get_interface_rop_type(interface_type)
         ws_handler = WSHandler(self)
         await ws_handler.client_message_loop(ws_url)
-        return interface_ptr_type(self, ws_handler.ws, object_id)
+        return interface_rop_type(self, ws_handler.ws, object_id)
 
     def add_call_waiter__(self, message_id, fut, loop):
         with self.messages_lock:
@@ -108,7 +108,7 @@ class Communicator:
             for k, v in args_json.items():
                 arg_ann_type = args_d[k]
                 arg_v = pybx_json.from_json(v, arg_ann_type)
-                if isinstance(arg_v, pybx_td.ptr_impl_base): # activation
+                if isinstance(arg_v, pybx_td.rop_impl_base): # activation
                     arg_v.comm = self
                     arg_v.ws = ws_handler.ws
                 args[k] = arg_v

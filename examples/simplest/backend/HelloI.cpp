@@ -7,9 +7,9 @@ string HelloCBI::confirmHello(string hello)
   return string("confirmed: ") + hello;
 }
 
-string HelloI::register_hello_cb(backend::HelloCBPtr cb_ptr)
+string HelloI::register_hello_cb(backend::HelloCB_rop cb_rop)
 {
-  cbs.push_back(cb_ptr);
+  cbs.push_back(cb_rop);
   return "hkjhjhk";
 }
 

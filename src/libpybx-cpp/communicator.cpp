@@ -118,7 +118,7 @@ void pybx::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& ms
 }
 
 void pybx::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket> ws,
-						const string& msg)
+					      const string& msg)
 {
   string method_signature = get_method_signature(msg);
   auto method_call = RemoteMethods::find_method(method_signature);

@@ -36,7 +36,7 @@ class ObserverI extends Blotter.Observer
 
 function App() {
     let comm = new libpybx.Communicator();
-    const blotter_ptr = useRef(null);
+    const blotter_rop = useRef(null);
     const [update_c, set_update_c] = useState(0);
     const [columns, setColumns] = useState([]);
     const [rows, setRows] = useState([]);
@@ -45,19 +45,19 @@ function App() {
     React.useEffect(() => {
 	let ws_url = "ws://localhost:8080/";
 	let object_id = "test_df";	
-	comm.get_ptr(Blotter.DFTest, ws_url, object_id).then(o_ptr => {
-	    blotter_ptr.current = o_ptr;
+	comm.get_rop(Blotter.DFTest, ws_url, object_id).then(o_rop => {
+	    blotter_rop.current = o_rop;
 	}).then(() => {
 	    let o_obj = new ObserverI(setRows, set_update_c);
-	    let s_ptr = comm.add_object(o_obj, "aa")
-	    return blotter_ptr.current.subscribe(s_ptr);
+	    let s_rop = comm.add_object(o_obj, "aa")
+	    return blotter_rop.current.subscribe(s_rop);
 	}).then(() => {
 	    console.log("connection setup is done");
 	});
     }, []);
 
     const onClick = () => {
-	blotter_ptr.current.get_df().then(df => {
+	blotter_rop.current.get_df().then(df => {
 	    console.log("onClick:", df);
 	    set_update_c(df.update_c);
 	    setColumns(df.df.columns.map(x => { return {name: x}; }));

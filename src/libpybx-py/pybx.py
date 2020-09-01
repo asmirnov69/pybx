@@ -2,7 +2,7 @@ import ipdb
 import importlib.machinery, os.path, sys, types
 import inspect
 import codegen_py, pybx_parser, uuid, json, pybx_json
-from pybx_type_descriptors import interface, ObjectPtr
+from pybx_type_descriptors import interface, ROP
 import pybx_type_descriptors as pybx_td
 
 pybx_path = ["."]
@@ -18,7 +18,7 @@ def find_pybx_module_file(pybx_mod_name):
             break
     return ret
 
-def import_pybx(pybx_mod_name, do_ptr_class_impls_registration = True):
+def import_pybx(pybx_mod_name, do_rop_class_impls_registration = True):
     #absolute_name = importlib.util.resolve_name(pybx_mod_name, None)
     #print("absolute_name:", absolute_name)
     absolute_name = pybx_mod_name
@@ -41,7 +41,7 @@ def import_pybx(pybx_mod_name, do_ptr_class_impls_registration = True):
     globals_ns['pybx_json'] = globals()['pybx_json']
     globals_ns[absolute_name] = mod
         
-    if do_ptr_class_impls_registration:
+    if do_rop_class_impls_registration:
         mod_defs = pybx_parser.parse_module(mod)
-        codegen_py.generate_ptr_classes(mod, mod_defs, globals_ns)
+        codegen_py.generate_rop_classes(mod, mod_defs, globals_ns)
 
