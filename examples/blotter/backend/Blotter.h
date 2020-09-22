@@ -256,8 +256,7 @@ inline Blotter::DFWUPC DFTest_rop::get_df()
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<DFTest__get_df::return_t> res;
@@ -282,8 +281,7 @@ inline void DFTest_rop::subscribe(Blotter::Observer_rop rop)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<DFTest__subscribe::return_t> res;
@@ -337,8 +335,7 @@ inline void Observer_rop::show(Blotter::DFWUPC df)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<Observer__show::return_t> res;

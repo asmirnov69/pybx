@@ -122,5 +122,5 @@ ADD_ACTION("run[]", [](const Fuargs::args&) {
 
 int main(int argc, char** argv)
 {
-  Fuargs::exec_actions(argc, argv);
+  Fuargs::exec_actions(argc, argv, false, false);
 }

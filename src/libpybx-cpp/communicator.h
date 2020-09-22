@@ -58,7 +58,10 @@ namespace pybx {
     void run();
 
     shared_ptr<Object> find_object(const string& object_id);
-    pair<pybx::message_type_t, string> wait_for_response(const string& message_id);
+    pair<pybx::message_type_t, string>
+    send_and_wait_for_response(shared_ptr<ix::WebSocket> ws,
+			       const string& req_s,
+			       const string& message_id);
     void signal_response(const string& message_id, message_type_t msg_type,
 			 const string& msg);
     void check_response(message_type_t msg_type, const string& msg);

@@ -136,8 +136,10 @@ void pybx::Communicator::dispatch_response(message_type_t msg_type,
 }
 
 pair<pybx::message_type_t, string>
-pybx::Communicator::wait_for_response(const string& message_id)
-{
+pybx::Communicator::send_and_wait_for_response(shared_ptr<ix::WebSocket> ws,
+					       const string& req_s,
+					       const string& message_id)
+{  
   shared_ptr<Waiter> w;
   {
     lock_guard g(waiters_lock);
@@ -150,6 +152,8 @@ pybx::Communicator::wait_for_response(const string& message_id)
     w = waiters[message_id] = make_shared<Waiter>();
   }
 
+  ws_send(ws, req_s);
+  
   pair<message_type_t, string> ret;
   w->blocking_get(&ret);
 

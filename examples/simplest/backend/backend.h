@@ -308,8 +308,7 @@ inline vector<backend::Greetings> Hello_rop::reformatGreetings(vector<backend::G
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<Hello__reformatGreetings::return_t> res;
@@ -334,8 +333,7 @@ inline string Hello_rop::register_hello_cb(backend::HelloCB_rop cb)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<Hello__register_hello_cb::return_t> res;
@@ -360,8 +358,7 @@ inline backend::Greetings Hello_rop::sayHello(string weSay)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<Hello__sayHello::return_t> res;
@@ -415,8 +412,7 @@ inline string HelloCB_rop::confirmHello(string hello)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<HelloCB__confirmHello::return_t> res;

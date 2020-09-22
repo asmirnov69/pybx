@@ -267,8 +267,7 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
   
     ostringstream json_os;
     to_json(json_os, req);  
-    pybx::ws_send(ws, json_os.str());
-    auto res_s = comm->wait_for_response(req.message_id);
+    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
     comm->check_response(res_s.first, res_s.second);
     
     pybx::Response<{method_impl_class_name}::return_t> res;
