@@ -10,24 +10,17 @@ using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
 #include <kvan/cbq.h>
+#include <libpybx-cpp/exception.h>
 #include <libpybx-cpp/proto.h>
 
 namespace pybx {
-
+  
   void ws_send(shared_ptr<ix::WebSocket>, const string& msg);
   
   class Object
   {
   public:
     virtual ~Object() = 0;
-  };
-
-  class RemoteException : public runtime_error
-  {
-  public:
-    explicit RemoteException(const string& m) :
-      runtime_error(string("remote exception:\n") + m)
-    {}
   };
 
   class Communicator
@@ -54,6 +47,7 @@ namespace pybx {
     
   public:
     explicit Communicator();
+    ~Communicator();
     void set_listen_port(int listen_port);
     void run();
 

@@ -9,13 +9,14 @@ using namespace std;
 #include <libpybx-cpp/communicator.h>
 #include <libpybx-cpp/proto.h>
 #include <libpybx-cpp/remote-methods.h>
+#include <libpybx-cpp/exception.h>
 
 void pybx::ws_send(shared_ptr<ix::WebSocket> ws, const string& msg)
 {
   auto send_ret = ws->send(msg);
   if (send_ret.success == false) {
     cout << "send failed: " << ws << endl;
-    throw runtime_error("pybx::ws_send: send failed");
+    throw BadROP("pybx::ws_send: send failed");
   }
 }
 
@@ -27,6 +28,12 @@ pybx::Communicator::Communicator()
 {
   RemoteMethods::set_communicator(this);
   worker_thread = move(thread(bind(&Communicator::do_dispatch_method_call_thread, this)));
+  worker_thread.detach();
+}
+
+pybx::Communicator::~Communicator()
+{
+  cout << "pybx::Communicator::~Communicator()" << endl;
 }
 
 void pybx::Communicator::set_listen_port(int listen_port)
@@ -99,6 +106,7 @@ void pybx::Communicator::do_dispatch_method_call_thread()
     } catch (exception& ex) {
       cout << "pybx::Communicator::do_dispatch_method_call_thread caught exception" << endl;
       cout << ex.what() << endl;
+      break;
     }
   }
 }
@@ -159,7 +167,7 @@ pybx::Communicator::send_and_wait_for_response(shared_ptr<ix::WebSocket> ws,
 
   {
     lock_guard g(waiters_lock);
-    cout << "erasing " << message_id << endl;
+    //cout << "erasing " << message_id << endl;
     waiters.erase(message_id);
   }
   
@@ -229,7 +237,7 @@ void pybx::Communicator::run()
 					 }
 				       } else if (msg->type == ix::WebSocketMessageType::Message) {
 					 string res_s;
-					 cout << "message " << msg->str.size() << endl;
+					 //cout << "message " << msg->str.size() << endl;
 					 this->dispatch(webSocket, msg->str);
 				       } else if (msg->type == ix::WebSocketMessageType::Close) {
 					 cout << "connection closed" << endl;

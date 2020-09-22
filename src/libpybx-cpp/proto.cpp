@@ -20,7 +20,7 @@ pybx::message_type_t pybx::get_message_type(const string& msg)
   smatch ma;
   if (regex_search(msg, ma, message_type_re)) {
     if (ma.ready() && ma.size() == 2) {
-      cout << "pybx::get_message_type: " << ma[1].str() << endl;
+      //cout << "pybx::get_message_type: " << ma[1].str() << endl;
       pybx::message_type_t ret;
       set_enum_value(&ret, ma[1].str());
       return ret;

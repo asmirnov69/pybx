@@ -72,8 +72,16 @@ public:
     auto columns = to_fjson(out, v);
     Blotter::DataFrame df{.columns = columns, .dataframeJSON = out.str()};
     Blotter::DFWUPC dfwupc{.df = df, .update_c = -2};
-    for (auto& rop: rops) {
-      rop.show(dfwupc);
+    for (auto it = rops.begin(); it != rops.end(); ) {
+      try {
+	(*it).show(dfwupc);
+	it++;
+      } catch (pybx::BadROP& e) {
+	cout << "caught pybx::BadROP: " << e.what() << endl;
+	cout << "removing subscriber at pos " << (it - rops.begin()) << endl;
+	it = rops.erase(it);
+	cout << "new rops size: " << rops.size() << endl;
+      }
     }
   }
 };
