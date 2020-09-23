@@ -35,7 +35,7 @@ class InterfaceDef:
         for m in self.methods:
             m.dump()
 
-fundamental_types = {str: 'string', int: 'int', float: 'double'}
+fundamental_types = {str: 'string', int: 'int', float: 'double', bool: 'bool'}
 class Type:
     def __init__(self, py_type):
         self.py_type = py_type
