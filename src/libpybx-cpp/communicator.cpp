@@ -97,12 +97,12 @@ void pybx::Communicator::do_dispatch_method_call_thread()
 {
   while (true) {
     try {
-      pair<shared_ptr<ix::WebSocket>, string> m;
+      tuple<shared_ptr<ix::WebSocket>, string, bool> m;
       cout << "pybx::Communicator::do_dispath_method_call_thread: start waiting for new message" << endl;
       worker_q.blocking_get(&m);
-      auto [ws, msg] = m;
+      auto [ws, msg, oneway_f] = m;
       cout << "pybx::Communicator::do_dispath_method_call_thread: msg: " << msg << endl;
-      this->dispatch_method_call(ws, msg);
+      this->dispatch_method_call(ws, msg, oneway_f);
     } catch (exception& ex) {
       cout << "pybx::Communicator::do_dispatch_method_call_thread caught exception" << endl;
       cout << ex.what() << endl;
@@ -116,7 +116,8 @@ void pybx::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& ms
   auto msg_type = get_message_type(msg);
   switch (msg_type) {
   case message_type_t::METHOD_CALL:
-    worker_q.blocking_put(make_pair(ws, msg));
+  case message_type_t::METHOD_ONEWAY_CALL:
+    worker_q.blocking_put(make_tuple(ws, msg, msg_type == message_type_t::METHOD_ONEWAY_CALL));
     break;
   case message_type_t::METHOD_CALL_RETURN:
   case message_type_t::METHOD_CALL_EXCEPTION:
@@ -126,14 +127,19 @@ void pybx::Communicator::dispatch(shared_ptr<ix::WebSocket> ws, const string& ms
 }
 
 void pybx::Communicator::dispatch_method_call(shared_ptr<ix::WebSocket> ws,
-					      const string& msg)
+					      const string& msg,
+					      bool oneway_f)
 {
   string method_signature = get_method_signature(msg);
   auto method_call = RemoteMethods::find_method(method_signature);
   string res_msg;
   method_call->do_call(msg, &res_msg, ws);
-  pybx::ws_send(ws, res_msg);
-  cout << "pybx::Communicator::dispatch_method_call response: " << res_msg << endl;
+  if (oneway_f == false) {
+    pybx::ws_send(ws, res_msg);
+    cout << "pybx::Communicator::dispatch_method_call response: " << res_msg << endl;
+  } else {
+    cout << "pybx::Communicator::dispatch_method_call oneway call" << endl;
+  }
 }
 
 void pybx::Communicator::dispatch_response(message_type_t msg_type,
@@ -141,6 +147,14 @@ void pybx::Communicator::dispatch_response(message_type_t msg_type,
 {
   auto orig_message_id = get_orig_message_id(msg);
   this->signal_response(orig_message_id, msg_type, msg);
+}
+
+void
+pybx::Communicator::send_oneway(shared_ptr<ix::WebSocket> ws,
+				const string& req_s,
+				const string& message_id)
+{  
+  ws_send(ws, req_s);
 }
 
 pair<pybx::message_type_t, string>
@@ -205,6 +219,7 @@ void pybx::Communicator::check_response(message_type_t msg_type,
     }
     break;
   case pybx::message_type_t::METHOD_CALL:
+  case pybx::message_type_t::METHOD_ONEWAY_CALL:
     throw runtime_error("pybx::Communicator::check_response: unexcepted message type METHOD_CALL");
     break;
   }

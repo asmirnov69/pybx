@@ -17,7 +17,7 @@ class DFWUPC:
 
 class DFTest(pybx.interface):
     def get_df(self) -> DFWUPC: []
-    def subscribe(self, rop: Observer_rop) -> None: []
+    def subscribe(self, rop: Observer_rop) -> Observer_rop: []
     
 class Observer(pybx.interface):
     def show(self, df: DFWUPC) -> None: []

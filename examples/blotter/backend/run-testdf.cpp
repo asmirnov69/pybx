@@ -44,16 +44,19 @@ public:
     return Blotter::DFWUPC{.df = df, .update_c = -1};
   }
 
-  void subscribe(Blotter::Observer_rop rop) override {
+  Blotter::Observer_rop subscribe(Blotter::Observer_rop rop) override {
     cout << "DFTestI::subscribe" << endl;
     lock_guard<mutex> l(obj_lock);
     rops.push_back(rop);
+    return rop;
   }
 
   void update_thread()
   {
     cout << "starting update thread" << endl;
+    int i = 0;
     while (1) {
+      cout << "update thread " << i++ << endl;
       {
 	lock_guard<mutex> l(obj_lock);
 	for (auto& el: v) {
@@ -74,6 +77,7 @@ public:
     Blotter::DFWUPC dfwupc{.df = df, .update_c = -2};
     for (auto it = rops.begin(); it != rops.end(); ) {
       try {
+	(*it).oneway = true;
 	(*it).show(dfwupc);
 	it++;
       } catch (pybx::BadROP& e) {

@@ -34,7 +34,9 @@ class WSHandler:
 
             message_json = json.loads(message)
             if message_json['message-type'] == 'method-call':
-                await self.comm.do_call__(message_json, self)
+                await self.comm.do_call__(message_json, self, False)
+            elif message_json['message-type'] == 'method-oneway-call':
+                await self.comm.do_call__(message_json, self, True)
             elif message_json['message-type'] in ['method-call-return', 'method-call-exception']:
                 orig_message_id = message_json['orig-message-id']
                 result_fut, loop = self.comm.get_call_waiter__(orig_message_id)
@@ -87,7 +89,7 @@ class Communicator:
         with self.messages_lock:
             return self.messages__.pop(orig_message_id)
     
-    async def do_call__(self, message_json, ws_handler):
+    async def do_call__(self, message_json, ws_handler, oneway_f):
         try:
             object_id = message_json['object-id']
             print("looking up obj", object_id)
@@ -114,6 +116,8 @@ class Communicator:
                 args[k] = arg_v
             b_method = eval(f"obj.{m_def.name}")
             ret = await b_method(**args)
+            if oneway_f == True:
+                return
             print("ret:", ret)
             #ipdb.set_trace()
             ret_json = pybx_json.to_json(ret)

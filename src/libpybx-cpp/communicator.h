@@ -36,10 +36,10 @@ namespace pybx {
     map<string, shared_ptr<Waiter>> waiters; // message_id -> waiter
 
     void dispatch(shared_ptr<ix::WebSocket> ws, const string& msg);
-    void dispatch_method_call(shared_ptr<ix::WebSocket> ws, const string& msg);
+    void dispatch_method_call(shared_ptr<ix::WebSocket> ws, const string& msg, bool oneway_f);
     void dispatch_response(message_type_t msg_type, const string& msg);
     void do_dispatch_method_call_thread();
-    CBQ<pair<shared_ptr<ix::WebSocket>, string>, 8> worker_q;    
+    CBQ<tuple<shared_ptr<ix::WebSocket>, string, bool>, 8> worker_q;    
     thread worker_thread;
 
     shared_ptr<ix::WebSocket> connect(const string& ws_url, const string& object_id);
@@ -56,6 +56,9 @@ namespace pybx {
     send_and_wait_for_response(shared_ptr<ix::WebSocket> ws,
 			       const string& req_s,
 			       const string& message_id);
+    void send_oneway(shared_ptr<ix::WebSocket> ws,
+		     const string& req_s,
+		     const string& message_id);
     void signal_response(const string& message_id, message_type_t msg_type,
 			 const string& msg);
     void check_response(message_type_t msg_type, const string& msg);

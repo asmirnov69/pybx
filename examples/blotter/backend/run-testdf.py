@@ -50,7 +50,8 @@ class DFTestI(Blotter.DFTest):
         print("DFTestI::subscribe:", rop)
         #ipdb.set_trace()
         with self.df_lock:
-            self.subscribers.append(rop)
+            res_rop = self.subscribers.append(rop)
+            print("res_rop: ", res_rop)
 
     async def publish(self):
         with self.df_lock:
@@ -81,7 +82,8 @@ async def test_subscriber_coro():
 
     subscriber_o = ObserverI()
     subscriber_rop = comm.add_object(subscriber_o, "uu")
-    await testdf_rop.subscribe(subscriber_rop)    
+    res_rop = await testdf_rop.subscribe(subscriber_rop)
+    print("RES_ROP:", res_rop)
 
 @fuargs.action
 def test_subscriber():

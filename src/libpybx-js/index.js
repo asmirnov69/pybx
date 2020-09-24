@@ -88,6 +88,11 @@ export class Communicator
 		    };
 		    let send_res = this.ws.send(JSON.stringify(res_message));
 		    //console.log("send_res:", send_res);
+		} else if (message['message-type'] == 'method-oneway-call') {
+		    let o = this.objects.get((message['object-id']));
+		    let method = message['method-signature'];
+		    let args = message['args'];
+		    o.__call_method(method, args);		    
 		}
 	    };
 	});

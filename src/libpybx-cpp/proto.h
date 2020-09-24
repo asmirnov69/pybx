@@ -12,7 +12,7 @@ using namespace std;
 
 namespace pybx {
   enum class message_type_t {
-    METHOD_CALL = 0, METHOD_CALL_RETURN, METHOD_CALL_EXCEPTION
+    METHOD_CALL = 0, METHOD_CALL_RETURN, METHOD_CALL_EXCEPTION, METHOD_ONEWAY_CALL
   };
 
   string create_new_message_id();
@@ -42,7 +42,6 @@ namespace pybx {
     string orig_message_id;
     string remote_exception_text;
   };
-
 };
 
 template <> inline string
@@ -59,7 +58,10 @@ get_enum_value_string<pybx::message_type_t>(pybx::message_type_t t)
   case pybx::message_type_t::METHOD_CALL_EXCEPTION:
     ret = "method-call-exception";
     break;
-  }
+  case pybx::message_type_t::METHOD_ONEWAY_CALL:
+    ret = "method-oneway-call";
+    break;
+  }  
   return ret;
 }
 
@@ -72,6 +74,8 @@ void set_enum_value<pybx::message_type_t>(pybx::message_type_t* o, const string&
     *o = pybx::message_type_t::METHOD_CALL_RETURN;
   } else if (v == "method-call-exception") {
     *o = pybx::message_type_t::METHOD_CALL_EXCEPTION;
+  } else if (v == "method-oneway-call") {
+    *o = pybx::message_type_t::METHOD_ONEWAY_CALL;
   } else {
     ostringstream m;
     m << "set_enum_value<message_type_t>: uknown value " << v;

@@ -16,6 +16,10 @@ class rop_impl_class(pybx_td.rop_impl_base):
 
 rop_class_method_def_code_tmpl = """
     async def {method_name}(self, {method_args_l}):
+        ## ugly hack to make things work. for some unknown reasons
+        ## sometimes typing become unavailble
+        import typing
+        typing.object = typing._alias(object, typing.T, inst = False)
         message_json = {{
             'message-type': 'method-call',
             'method-signature': '{method_signature}',

@@ -55,14 +55,15 @@ private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
+  bool oneway{false};
   std::string object_id;
-  std::string __interface_type{"Blotter.DFTest_rop"};
+  std::string __interface_type{"Blotter.DFTest"};
   DFTest_rop();
   DFTest_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
   DFTest_rop(pybx::Communicator* comm, const std::string& object_id);
   void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);
   Blotter::DFWUPC get_df();
-  void subscribe(Blotter::Observer_rop rop);
+  Blotter::Observer_rop subscribe(Blotter::Observer_rop rop);
 };
 }
 template <> inline StructDescriptor get_struct_descriptor<Blotter::DFTest_rop>()
@@ -79,8 +80,9 @@ private:
   pybx::Communicator* comm{nullptr};
   std::shared_ptr<ix::WebSocket> ws;
 public:
+  bool oneway{false};
   std::string object_id;
-  std::string __interface_type{"Blotter.Observer_rop"};
+  std::string __interface_type{"Blotter.Observer"};
   Observer_rop();
   Observer_rop(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);
   Observer_rop(pybx::Communicator* comm, const std::string& object_id);
@@ -101,7 +103,7 @@ class DFTest : public pybx::Object {
 public:
  typedef DFTest_rop rop_t;
  virtual Blotter::DFWUPC get_df() = 0;
- virtual void subscribe(Blotter::Observer_rop rop) = 0;
+ virtual Blotter::Observer_rop subscribe(Blotter::Observer_rop rop) = 0;
 };
 }
 namespace Blotter {
@@ -144,7 +146,7 @@ struct DFTest__subscribe : public pybx::method_impl
  Blotter::Observer_rop rop;
  };
  struct return_t {
-   json_null_t retval;
+   Blotter::Observer_rop retval;
  };
  void do_call(const std::string& req_s, std::string* res_s, std::shared_ptr<ix::WebSocket>) override;
 };
@@ -244,7 +246,7 @@ inline Blotter::DFWUPC DFTest_rop::get_df()
 {
 
     pybx::Request<DFTest__get_df::args_t> req{
-    .message_type = pybx::message_type_t::METHOD_CALL,
+    .message_type = this->oneway ? pybx::message_type_t::METHOD_ONEWAY_CALL : pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
       .method_signature = "DFTest__get_df",
       .object_id = object_id,
@@ -256,20 +258,24 @@ inline Blotter::DFWUPC DFTest_rop::get_df()
   
     ostringstream json_os;
     to_json(json_os, req);  
-    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
-    comm->check_response(res_s.first, res_s.second);
+    if (this->oneway) {
+      comm->send_oneway(ws, json_os.str(), req.message_id);
+    } else {
+      auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
+      comm->check_response(res_s.first, res_s.second);
     
-    pybx::Response<DFTest__get_df::return_t> res;
-    from_json(&res, res_s.second);
-     ret = res.retval.retval;
+      pybx::Response<DFTest__get_df::return_t> res;
+      from_json(&res, res_s.second);
+       ret = res.retval.retval;
+    }
      return ret;
     
 }
-inline void DFTest_rop::subscribe(Blotter::Observer_rop rop)
+inline Blotter::Observer_rop DFTest_rop::subscribe(Blotter::Observer_rop rop)
 {
 
     pybx::Request<DFTest__subscribe::args_t> req{
-    .message_type = pybx::message_type_t::METHOD_CALL,
+    .message_type = this->oneway ? pybx::message_type_t::METHOD_ONEWAY_CALL : pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
       .method_signature = "DFTest__subscribe",
       .object_id = object_id,
@@ -277,17 +283,21 @@ inline void DFTest_rop::subscribe(Blotter::Observer_rop rop)
       };
 
     req.args.rop=rop;
-    // void ret;
+     Blotter::Observer_rop ret;
   
     ostringstream json_os;
     to_json(json_os, req);  
-    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
-    comm->check_response(res_s.first, res_s.second);
+    if (this->oneway) {
+      comm->send_oneway(ws, json_os.str(), req.message_id);
+    } else {
+      auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
+      comm->check_response(res_s.first, res_s.second);
     
-    pybx::Response<DFTest__subscribe::return_t> res;
-    from_json(&res, res_s.second);
-    // ret = res.retval.retval;
-    // return ret;
+      pybx::Response<DFTest__subscribe::return_t> res;
+      from_json(&res, res_s.second);
+       ret = res.retval.retval;
+    }
+     return ret;
     
 }
 } // end of namespace
@@ -323,7 +333,7 @@ inline void Observer_rop::show(Blotter::DFWUPC df)
 {
 
     pybx::Request<Observer__show::args_t> req{
-    .message_type = pybx::message_type_t::METHOD_CALL,
+    .message_type = this->oneway ? pybx::message_type_t::METHOD_ONEWAY_CALL : pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
       .method_signature = "Observer__show",
       .object_id = object_id,
@@ -335,12 +345,16 @@ inline void Observer_rop::show(Blotter::DFWUPC df)
   
     ostringstream json_os;
     to_json(json_os, req);  
-    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
-    comm->check_response(res_s.first, res_s.second);
+    if (this->oneway) {
+      comm->send_oneway(ws, json_os.str(), req.message_id);
+    } else {
+      auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
+      comm->check_response(res_s.first, res_s.second);
     
-    pybx::Response<Observer__show::return_t> res;
-    from_json(&res, res_s.second);
-    // ret = res.retval.retval;
+      pybx::Response<Observer__show::return_t> res;
+      from_json(&res, res_s.second);
+      // ret = res.retval.retval;
+    }
     // return ret;
     
 }
@@ -399,7 +413,7 @@ inline void DFTest__subscribe::do_call(const string& req_s, string* res_s, share
       pybx::Response<return_t> res;
       res.message_id = pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
-      // res.retval.retval = 
+       res.retval.retval = 
             self->subscribe(req.args.rop);
       to_json(res_os, res);
     } catch (exception& e) {

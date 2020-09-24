@@ -102,8 +102,9 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print("  pybx::Communicator* comm{nullptr};", file = out_fd)
     print("  std::shared_ptr<ix::WebSocket> ws;", file = out_fd)
     print("public:", file = out_fd)
+    print("  bool oneway{false};", file = out_fd)
     print("  std::string object_id;", file = out_fd)
-    print(f"  std::string __interface_type{{\"{cpp_namespace}.{class_name}\"}};", file = out_fd)
+    print(f"  std::string __interface_type{{\"{cpp_namespace}.{interface_def.name}\"}};", file = out_fd)
     print(f"  {class_name}();", file = out_fd)
     print(f"  {class_name}(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
     print(f"  {class_name}(pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
@@ -255,7 +256,7 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
     print("{", file = out_fd)
     rop_method_template = f"""
     pybx::Request<{method_impl_class_name}::args_t> req{{
-    .message_type = pybx::message_type_t::METHOD_CALL,
+    .message_type = this->oneway ? pybx::message_type_t::METHOD_ONEWAY_CALL : pybx::message_type_t::METHOD_CALL,
       .message_id = pybx::create_new_message_id(),
       .method_signature = "{method_impl_class_name}",
       .object_id = object_id,
@@ -267,12 +268,16 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
   
     ostringstream json_os;
     to_json(json_os, req);  
-    auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
-    comm->check_response(res_s.first, res_s.second);
+    if (this->oneway) {{
+      comm->send_oneway(ws, json_os.str(), req.message_id);
+    }} else {{
+      auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
+      comm->check_response(res_s.first, res_s.second);
     
-    pybx::Response<{method_impl_class_name}::return_t> res;
-    from_json(&res, res_s.second);
-    {disable_void_return} ret = res.retval.retval;
+      pybx::Response<{method_impl_class_name}::return_t> res;
+      from_json(&res, res_s.second);
+      {disable_void_return} ret = res.retval.retval;
+    }}
     {disable_void_return} return ret;
     """
     print(rop_method_template, file = out_fd)
