@@ -8,6 +8,7 @@ import codegen_cpp, codegen_js, codegen_py
 
 @fuargs.action
 def verify(fn):
+    fn = os.path.realpath(os.path.expanduser(fn))
     mod_name = os.path.basename(fn).split(".")[0]
     pybx.pybx_path = [os.path.dirname(fn)]
     pybx.import_pybx(mod_name, False)
@@ -18,6 +19,7 @@ def verify(fn):
 
 @fuargs.action
 def parse(fn):
+    fn = os.path.realpath(os.path.expanduser(fn))
     mod_name = os.path.basename(fn).split(".")[0]
     pybx.pybx_path = [os.path.dirname(fn)]
     pybx.import_pybx(mod_name, False)
