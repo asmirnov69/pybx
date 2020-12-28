@@ -7,9 +7,10 @@ using namespace std;
 
 int main()
 {
-  int port = 8080;
+  string host = "0.0.0.0";
+  int port = 12345;
   pybx::Communicator comm;
-  comm.set_listen_port(port);
+  comm.set_listen_port(port, host);
   
   shared_ptr<backend::Hello> hello_o = make_shared<HelloI>();
   auto hello_rop = comm.add_object<backend::Hello>(hello_o, "hello");

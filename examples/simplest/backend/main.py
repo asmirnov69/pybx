@@ -29,9 +29,11 @@ class HelloI(backend.Hello):
     
 @fuargs.action
 def run_server():
-    port = 8080
+    port = 12345
+    host = "0.0.0.0"
     comm = pybx_comm.Communicator()
-    ws_server_task = comm.start_server(port)
+    comm.set_listen_port(port, host)
+    ws_server_task = comm.start_server()
 
     hello_o = HelloI()
     comm.add_object(hello_o, "hello")

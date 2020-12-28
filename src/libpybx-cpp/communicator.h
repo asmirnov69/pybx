@@ -26,6 +26,7 @@ namespace pybx {
   class Communicator
   {
   private:
+    string listen_host;
     int listen_port{-1};
 
     mutex objects_lock;
@@ -48,7 +49,7 @@ namespace pybx {
   public:
     explicit Communicator();
     ~Communicator();
-    void set_listen_port(int listen_port);
+    void set_listen_port(int listen_port, const string& listen_host = "127.0.0.0");
     void run();
 
     shared_ptr<Object> find_object(const string& object_id);

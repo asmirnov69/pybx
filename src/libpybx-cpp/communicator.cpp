@@ -36,9 +36,10 @@ pybx::Communicator::~Communicator()
   cout << "pybx::Communicator::~Communicator()" << endl;
 }
 
-void pybx::Communicator::set_listen_port(int listen_port)
+void pybx::Communicator::set_listen_port(int listen_port, const string& listen_host)
 {
   this->listen_port = listen_port;
+  this->listen_host = listen_host;
 }
 
 string pybx::Communicator::add_object(shared_ptr<Object> o,
@@ -227,7 +228,7 @@ void pybx::Communicator::check_response(message_type_t msg_type,
 
 void pybx::Communicator::run()
 {
-  ix::WebSocketServer server(listen_port);
+  ix::WebSocketServer server(listen_port, listen_host);
   server.setOnConnectionCallback([&server, this]
 				 (std::shared_ptr<ix::WebSocket> webSocket,
 				  std::shared_ptr<ix::ConnectionState> connectionState) {

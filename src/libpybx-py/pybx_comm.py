@@ -62,7 +62,13 @@ class Communicator:
         self.messages_lock = threading.Lock()
         self.messages__ = {}
         self.ws_handler_f = WSHandlerFactory(self)
-    
+        self.listen_host = None
+        self.listen_port = -1
+
+    def set_listen_port(self, listen_port, listen_host = "127.0.0.0"):
+        self.listen_port = listen_port
+        self.listen_host = listen_host
+        
     def add_object(self, o, object_id):
         with self.objects_lock:
             self.objects__[object_id] = o
@@ -70,9 +76,9 @@ class Communicator:
             interface_rop_type = pybx_td.get_interface_rop_type(interface_type)
             return interface_rop_type(self, None, object_id)
 
-    def start_server(self, port):
+    def start_server(self):
         return websockets.serve(self.ws_handler_f.server_message_loop,
-                                'localhost', port)
+                                self.listen_host, self.listen_port)
 
     async def get_rop(self, interface_type, ws_url, object_id):
         #ipdb.set_trace()
