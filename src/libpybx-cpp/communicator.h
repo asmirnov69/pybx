@@ -9,7 +9,7 @@
 using namespace std;
 
 #include <ixwebsocket/IXWebSocketServer.h>
-#include <kvan/cbq.h>
+#include <libpybx-cpp/cbq.h>
 #include <libpybx-cpp/exception.h>
 #include <libpybx-cpp/proto.h>
 
