@@ -3,7 +3,7 @@ using namespace std;
 
 #include <kvan/fuargs.h>
 #include <libpybx-cpp/communicator.h>
-#include "backend.h"
+#include "backend_pybx.h"
 #include "HelloI.h"
 
 ADD_ACTION("test_call[]", [](const Fuargs::args&) {

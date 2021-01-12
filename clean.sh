@@ -11,3 +11,4 @@ find . -name Makefile -delete
 find . -name "*.so" -delete
 find . -name "*.tsk" -delete
 find . -name __pycache__ -type d -print | xargs rm -rf
+find . -name "*_pybx.h" -delete

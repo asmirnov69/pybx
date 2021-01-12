@@ -5,7 +5,7 @@ using namespace std;
 #include <kvan/fuargs.h>
 #include <kvan/fjson-io.h>
 #include <libpybx-cpp/communicator.h>
-#include "Blotter.h"
+#include "Blotter_pybx.h"
 #include <unistd.h>
 
 class ObserverI : public Blotter::Observer {

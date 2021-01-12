@@ -2,7 +2,7 @@
 using namespace std;
 
 #include <libpybx-cpp/communicator.h>
-#include "backend.h"
+#include "backend_pybx.h"
 #include "HelloI.h"
 
 int main()
