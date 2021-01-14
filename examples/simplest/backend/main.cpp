@@ -12,8 +12,8 @@ int main()
   pybx::Communicator comm;
   comm.set_listen_port(port, host);
   
-  shared_ptr<backend::Hello> hello_o = make_shared<HelloI>();
-  auto hello_rop = comm.add_object<backend::Hello>(hello_o, "hello");
+  shared_ptr<pybx::backend::Hello> hello_o = make_shared<HelloI>();
+  auto hello_rop = comm.add_object<pybx::backend::Hello>(hello_o, "hello");
   
   cout << "server start" << endl;
   comm.run();

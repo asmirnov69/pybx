@@ -92,13 +92,15 @@ def test_subscriber():
     
 async def run_coro():
     port = 8080
+    host = "0.0.0.0"
     comm = pybx_comm.Communicator()
+    comm.set_listen_port(port, host)
     test_o = DFTestI()
     comm.add_object(test_o, "test_df")
 
     update_task = test_o.update_task()
     print("update_task:", update_task, type(update_task))
-    ws_server_task = comm.start_server(port)
+    ws_server_task = comm.start_server()
     print("ws_server_task:", ws_server_task, type(ws_server_task))        
     if 1:
         asyncio.create_task(update_task)

@@ -26,11 +26,14 @@ using namespace std;
 
 def generate_epilog(out_fd):
     print("#endif", file = out_fd)
+
+def get_cpp_namespace(identifier):
+    return "pybx::" + identifier
     
 def generate_struct_def(struct_def, out_fd):
     # struct def
     #ipdb.set_trace()
-    cpp_namespace = struct_def.def_type.__module__
+    cpp_namespace = get_cpp_namespace(struct_def.def_type.__module__)
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"struct {struct_def.name} {{", file = out_fd)
     for m_def in struct_def.fields:
@@ -54,7 +57,7 @@ def generate_struct_def(struct_def, out_fd):
 def generate_enum_def(enum_def, out_fd):
     #enum def
     #ipdb.set_trace()
-    cpp_namespace = enum_def.def_type.__module__
+    cpp_namespace = get_cpp_namespace(enum_def.def_type.__module__)
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"enum class {enum_def.name} {{", file = out_fd);
     for m_name, m_value in zip(enum_def.members, enum_def.member_values):
@@ -87,28 +90,28 @@ def generate_enum_def(enum_def, out_fd):
     print("}", file = out_fd)
 
 def generate_interface_client_forward_declarations(module_def, out_fd):
-    cpp_namespace = module_def.name
+    cpp_namespace = get_cpp_namespace(module_def.name)
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     for interface_def in module_def.interfaces:
         print(f"class {interface_def.name}_rop;", file = out_fd)
     print("}", file = out_fd)
         
 def generate_interface_client_declarations(interface_def, out_fd):
-    cpp_namespace = interface_def.def_type.__module__
+    cpp_namespace = get_cpp_namespace(interface_def.def_type.__module__)
     class_name = interface_def.name + "_rop"
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"class {class_name} {{", file = out_fd)
     print("private:", file = out_fd)
-    print("  pybx::Communicator* comm{nullptr};", file = out_fd)
+    print("  ::pybx::Communicator* comm{nullptr};", file = out_fd)
     print("  std::shared_ptr<ix::WebSocket> ws;", file = out_fd)
     print("public:", file = out_fd)
     print("  bool oneway{false};", file = out_fd)
     print("  std::string object_id;", file = out_fd)
     print(f"  std::string __interface_type{{\"{cpp_namespace}.{interface_def.name}\"}};", file = out_fd)
     print(f"  {class_name}();", file = out_fd)
-    print(f"  {class_name}(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
-    print(f"  {class_name}(pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
-    print(f"  void activate(pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);", file = out_fd)
+    print(f"  {class_name}(::pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws, const std::string& ws_url, const std::string& object_id);", file = out_fd)
+    print(f"  {class_name}(::pybx::Communicator* comm, const std::string& object_id);", file = out_fd)
+    print(f"  void activate(::pybx::Communicator* comm, std::shared_ptr<ix::WebSocket> ws);", file = out_fd)
     for m_def in interface_def.methods:
         m_cpp_ret_type = m_def.get_method_return_type().get_cpp_code_name()
         m_args_l = []
@@ -131,9 +134,9 @@ def generate_interface_client_declarations(interface_def, out_fd):
     print("}", file = out_fd)
     
 def generate_interface_server_declarations(interface_def, out_fd):
-    cpp_namespace = interface_def.def_type.__module__
+    cpp_namespace = get_cpp_namespace(interface_def.def_type.__module__)
     print(f"namespace {cpp_namespace} {{", file = out_fd)
-    print(f"class {interface_def.name} : public pybx::Object {{", file = out_fd)
+    print(f"class {interface_def.name} : public ::pybx::Object {{", file = out_fd)
     print("public:", file = out_fd)
     print(f" typedef {interface_def.name}_rop rop_t;", file = out_fd)
     #ipdb.set_trace()
@@ -153,7 +156,7 @@ def generate_interface_server_declarations(interface_def, out_fd):
 
         # method impl class
         print(f"namespace {cpp_namespace} {{", file = out_fd)
-        print(f"struct {method_impl_class_name} : public pybx::method_impl", file = out_fd)
+        print(f"struct {method_impl_class_name} : public ::pybx::method_impl", file = out_fd)
         print("{", file = out_fd)
         print(" struct args_t {", file = out_fd)
         m_args_l = []
@@ -183,9 +186,9 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
         
-        print(f"template <> inline StructDescriptor get_struct_descriptor<pybx::Request<{cpp_namespace}::{method_impl_class_name}::args_t>>()", file = out_fd)
+        print(f"template <> inline StructDescriptor get_struct_descriptor<::pybx::Request<{cpp_namespace}::{method_impl_class_name}::args_t>>()", file = out_fd)
         print("{", file = out_fd)
-        print(f" return get_StructDescriptor_T<{cpp_namespace}::{method_impl_class_name}::args_t, pybx::Request>::get_struct_descriptor();", file = out_fd)
+        print(f" return get_StructDescriptor_T<{cpp_namespace}::{method_impl_class_name}::args_t, ::pybx::Request>::get_struct_descriptor();", file = out_fd)
         print("}", file = out_fd)
 
         print(f"template <> inline StructDescriptor get_struct_descriptor<{cpp_namespace}::{method_impl_class_name}::return_t>()", file = out_fd)
@@ -196,20 +199,20 @@ def generate_interface_server_declarations(interface_def, out_fd):
         print(" return sd;", file = out_fd)
         print("}", file = out_fd)
 
-        print(f"template <> inline StructDescriptor get_struct_descriptor<pybx::Response<{cpp_namespace}::{method_impl_class_name}::return_t>>()", file = out_fd)
+        print(f"template <> inline StructDescriptor get_struct_descriptor<::pybx::Response<{cpp_namespace}::{method_impl_class_name}::return_t>>()", file = out_fd)
         print("{", file = out_fd)
-        print(f" return get_StructDescriptor_T<{cpp_namespace}::{method_impl_class_name}::return_t, pybx::Response>::get_struct_descriptor();", file = out_fd)
+        print(f" return get_StructDescriptor_T<{cpp_namespace}::{method_impl_class_name}::return_t, ::pybx::Response>::get_struct_descriptor();", file = out_fd)
         print("}", file = out_fd)
 
 def generate_interface_client_definitions(interface_def, out_fd):
-    cpp_namespace = interface_def.def_type.__module__    
+    cpp_namespace = get_cpp_namespace(interface_def.def_type.__module__)
     class_name = f"{interface_def.name}_rop"
     
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     print(f"inline {class_name}::{class_name}()", file = out_fd)
     print("{", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline {class_name}::{class_name}(pybx::Communicator* comm,", file = out_fd)
+    print(f"inline {class_name}::{class_name}(::pybx::Communicator* comm,", file = out_fd)
     print("std::shared_ptr<ix::WebSocket> ws,", file = out_fd)
     print("const std::string& ws_url, const std::string& object_id)", file = out_fd)
     print("{", file = out_fd)
@@ -217,12 +220,12 @@ def generate_interface_client_definitions(interface_def, out_fd):
     print(" this->ws = ws;", file = out_fd)
     print(" this->object_id = object_id;", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline {class_name}::{class_name}(pybx::Communicator* comm, const std::string& object_id)", file = out_fd)
+    print(f"inline {class_name}::{class_name}(::pybx::Communicator* comm, const std::string& object_id)", file = out_fd)
     print("{", file = out_fd)
     print(" this->comm = comm;", file = out_fd)
     print(" this->object_id = object_id;", file = out_fd)
     print("}", file = out_fd)
-    print(f"inline void {class_name}::activate(pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)", file = out_fd)
+    print(f"inline void {class_name}::activate(::pybx::Communicator* c, std::shared_ptr<ix::WebSocket> ws)", file = out_fd)
 
     method_activate_code = f"""
     {{
@@ -255,9 +258,9 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
     print(f"inline {m_ret_type} {rop_class_name}::{m_def.name}({m_args})", file = out_fd)
     print("{", file = out_fd)
     rop_method_template = f"""
-    pybx::Request<{method_impl_class_name}::args_t> req{{
-    .message_type = this->oneway ? pybx::message_type_t::METHOD_ONEWAY_CALL : pybx::message_type_t::METHOD_CALL,
-      .message_id = pybx::create_new_message_id(),
+    ::pybx::Request<{method_impl_class_name}::args_t> req{{
+    .message_type = this->oneway ? ::pybx::message_type_t::METHOD_ONEWAY_CALL : ::pybx::message_type_t::METHOD_CALL,
+      .message_id = ::pybx::create_new_message_id(),
       .method_signature = "{method_impl_class_name}",
       .object_id = object_id,
       .args = {method_impl_class_name}::args_t()
@@ -274,7 +277,7 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
       auto res_s = comm->send_and_wait_for_response(ws, json_os.str(), req.message_id);
       comm->check_response(res_s.first, res_s.second);
     
-      pybx::Response<{method_impl_class_name}::return_t> res;
+      ::pybx::Response<{method_impl_class_name}::return_t> res;
       from_json(&res, res_s.second);
       {disable_void_return} ret = res.retval.retval;
     }}
@@ -284,7 +287,7 @@ def generate_interface_client_method_definition(rop_class_name, interface_class_
     print("}", file = out_fd)
 
 def generate_interface_server_method_impls(module_def, interface_def, out_fd):
-    cpp_namespace = interface_def.def_type.__module__    
+    cpp_namespace = get_cpp_namespace(interface_def.def_type.__module__)
 
     print(f"namespace {cpp_namespace} {{", file = out_fd)
     for m_def in interface_def.methods:
@@ -311,7 +314,7 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     method_impl_do_call_tmpl = f"""
     ostringstream res_os;
     try {{
-      pybx::Request<args_t> req;
+      ::pybx::Request<args_t> req;
       from_json(&req, req_s);
 
       {activations_code}
@@ -322,16 +325,16 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
         throw runtime_error("dyn type mismatch");
       }}
 
-      pybx::Response<return_t> res;
-      res.message_id = pybx::create_new_message_id();
+      ::pybx::Response<return_t> res;
+      res.message_id = ::pybx::create_new_message_id();
       res.orig_message_id = req.message_id;
       {disable_void_return} res.retval.retval = 
             self->{m_def.name}({m_args});
       to_json(res_os, res);
     }} catch (exception& e) {{
-      pybx::ExceptionResponse eres;
-      eres.message_id = pybx::create_new_message_id();
-      eres.orig_message_id = pybx::get_message_id(req_s);
+      ::pybx::ExceptionResponse eres;
+      eres.message_id = ::pybx::create_new_message_id();
+      eres.orig_message_id = ::pybx::get_message_id(req_s);
       eres.remote_exception_text = e.what();
       to_json(res_os, eres);
     }}
@@ -344,7 +347,7 @@ def generate_interface_server_method_impl_definition(module_def, interface_def, 
     print("{", file = out_fd)
     print(method_impl_do_call_tmpl, file = out_fd)
     print("}", file = out_fd)
-    print(f"UNIQUE = pybx::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
+    print(f"UNIQUE = ::pybx::RemoteMethods::register_method(\"{class_name}\", std::make_shared<{class_name}>());", file = out_fd)
 
 def generate_cpp_file(module_def, out_fd, source_pybx_fn):
     generate_prolog(source_pybx_fn, out_fd)

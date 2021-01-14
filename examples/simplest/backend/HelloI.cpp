@@ -7,13 +7,13 @@ string HelloCBI::confirmHello(string hello)
   return string("confirmed: ") + hello;
 }
 
-string HelloI::register_hello_cb(backend::HelloCB_rop cb_rop)
+string HelloI::register_hello_cb(pybx::backend::HelloCB_rop cb_rop)
 {
   cbs.push_back(cb_rop);
   return "hkjhjhk";
 }
 
-backend::Greetings HelloI::sayHello(string weSay) {
+pybx::backend::Greetings HelloI::sayHello(string weSay) {
   cout << "HelloI::sayHello, size of cbs: " << cbs.size() << endl;
   for (auto& cb: cbs) {
     //cout << cb.ws << endl;
@@ -30,20 +30,20 @@ backend::Greetings HelloI::sayHello(string weSay) {
     throw runtime_error(m.str());
   }
   cout << "Hello::sayHello" << endl;
-  backend::Greetings ret;
+  pybx::backend::Greetings ret;
   ret.language = "english";
   ret.text = "Hello";
-  ret.color = backend::Color::NORMAL;
+  ret.color = pybx::backend::Color::NORMAL;
   //sleep(100);
   return ret;
 }
 
-vector<backend::Greetings> HelloI::reformatGreetings(vector<backend::Greetings> gs)
+vector<pybx::backend::Greetings> HelloI::reformatGreetings(vector<pybx::backend::Greetings> gs)
 {
   cout << "HelloI::reformatGreetings: " << gs.size() << " greetings" << endl;
   for (auto& el: gs) {
     el.text = el.text + " " + el.text;
-    el.color = backend::Color::RED;
+    el.color = pybx::backend::Color::RED;
   }
   return gs;
 }

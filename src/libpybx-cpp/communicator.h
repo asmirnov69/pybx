@@ -49,7 +49,7 @@ namespace pybx {
   public:
     explicit Communicator();
     ~Communicator();
-    void set_listen_port(int listen_port, const string& listen_host = "127.0.0.0");
+    void set_listen_port(int listen_port, const string& listen_host = "127.0.0.1");
     void run();
 
     shared_ptr<Object> find_object(const string& object_id);

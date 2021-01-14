@@ -8,17 +8,17 @@ using namespace std;
 #include "Blotter_pybx.h"
 #include <unistd.h>
 
-class ObserverI : public Blotter::Observer {
+class ObserverI : public pybx::Blotter::Observer {
 public:
-  void show(Blotter::DFWUPC df) override {
+  void show(pybx::Blotter::DFWUPC df) override {
     cout << "show: " << df.df.dataframeJSON << endl;
   }
 };
 
-class DFTestI : public Blotter::DFTest {
+class DFTestI : public pybx::Blotter::DFTest {
 private:
   mutex obj_lock;
-  vector<Blotter::Observer_rop> rops;
+  vector<pybx::Blotter::Observer_rop> rops;
   
 public:
   struct Rec {
@@ -36,15 +36,15 @@ public:
     };
   }
   
-  Blotter::DFWUPC get_df() override {
+  pybx::Blotter::DFWUPC get_df() override {
     lock_guard<mutex> l(obj_lock);
     ostringstream out;
     auto columns = to_fjson(out, v);
-    Blotter::DataFrame df{.columns = columns, .dataframeJSON = out.str()};
-    return Blotter::DFWUPC{.df = df, .update_c = -1};
+    pybx::Blotter::DataFrame df{.columns = columns, .dataframeJSON = out.str()};
+    return pybx::Blotter::DFWUPC{.df = df, .update_c = -1};
   }
 
-  Blotter::Observer_rop subscribe(Blotter::Observer_rop rop) override {
+  pybx::Blotter::Observer_rop subscribe(pybx::Blotter::Observer_rop rop) override {
     cout << "DFTestI::subscribe" << endl;
     lock_guard<mutex> l(obj_lock);
     rops.push_back(rop);
@@ -73,8 +73,8 @@ public:
     lock_guard<mutex> l(obj_lock);	
     ostringstream out;
     auto columns = to_fjson(out, v);
-    Blotter::DataFrame df{.columns = columns, .dataframeJSON = out.str()};
-    Blotter::DFWUPC dfwupc{.df = df, .update_c = -2};
+    pybx::Blotter::DataFrame df{.columns = columns, .dataframeJSON = out.str()};
+    pybx::Blotter::DFWUPC dfwupc{.df = df, .update_c = -2};
     for (auto it = rops.begin(); it != rops.end(); ) {
       try {
 	(*it).oneway = true;
@@ -102,9 +102,9 @@ template <> inline StructDescriptor get_struct_descriptor<DFTestI::Rec>()
 
 ADD_ACTION("test_subscriber[]", [](const Fuargs::args&) {
     pybx::Communicator comm;
-    auto testdf_rop = comm.get_rop<Blotter::DFTest>("ws://localhost:8080/", "test_df");
+    auto testdf_rop = comm.get_rop<pybx::Blotter::DFTest>("ws://localhost:8080/", "test_df");
     auto subscriber_o = make_shared<ObserverI>();
-    auto subscriber_rop = comm.add_object<Blotter::Observer>(subscriber_o, "test_df");
+    auto subscriber_rop = comm.add_object<pybx::Blotter::Observer>(subscriber_o, "test_df");
     testdf_rop.subscribe(subscriber_rop);
     comm.run();
     return true;
@@ -112,7 +112,7 @@ ADD_ACTION("test_subscriber[]", [](const Fuargs::args&) {
 
 ADD_ACTION("test[]", [](const Fuargs::args&) {
     pybx::Communicator comm;
-    auto testdf_rop = comm.get_rop<Blotter::DFTest>("ws://localhost:8080/", "test_df");
+    auto testdf_rop = comm.get_rop<pybx::Blotter::DFTest>("ws://localhost:8080/", "test_df");
     auto df = testdf_rop.get_df();
     cout << "df: " << df.df.dataframeJSON << endl;
     return true;
@@ -126,7 +126,7 @@ ADD_ACTION("run[]", [](const Fuargs::args&) {
     auto dftest_o = make_shared<DFTestI>();
     thread t(bind(&DFTestI::update_thread, dftest_o));
 
-    comm.add_object<Blotter::DFTest>(dftest_o, "test_df");    
+    comm.add_object<pybx::Blotter::DFTest>(dftest_o, "test_df");    
     comm.run();
 
     return true;

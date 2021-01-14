@@ -7,18 +7,18 @@ using namespace std;
 
 #include "backend_pybx.h"
 
-class HelloI : public backend::Hello
+class HelloI : public pybx::backend::Hello
 {
 private:
-  vector<backend::HelloCB_rop> cbs;
+  vector<pybx::backend::HelloCB_rop> cbs;
   
 public:
-  backend::Greetings sayHello(string weSay) override;
-  vector<backend::Greetings> reformatGreetings(vector<backend::Greetings> gs) override;
-  string register_hello_cb(backend::HelloCB_rop) override;
+  pybx::backend::Greetings sayHello(string weSay) override;
+  vector<pybx::backend::Greetings> reformatGreetings(vector<pybx::backend::Greetings> gs) override;
+  string register_hello_cb(pybx::backend::HelloCB_rop) override;
 };
 
-class HelloCBI : public backend::HelloCB
+class HelloCBI : public pybx::backend::HelloCB
 {
 public:
   string confirmHello(string hello) override;

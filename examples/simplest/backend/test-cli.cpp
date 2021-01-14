@@ -8,7 +8,7 @@ using namespace std;
 
 ADD_ACTION("test_call[]", [](const Fuargs::args&) {
     pybx::Communicator comm;
-    auto hello_rop = comm.get_rop<backend::Hello>("ws://localhost:8080/", "hello");
+    auto hello_rop = comm.get_rop<pybx::backend::Hello>("ws://localhost:8080/", "hello");
     
     cout << "start" << endl;
     for (int i = 0; i < 5; i++) {
@@ -19,9 +19,9 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
 	   << endl;
     }
 
-    vector<backend::Greetings> gs;
-    gs.push_back(backend::Greetings{.language = "russian", .text = "privet", .color = backend::Color::GREEN});
-    gs.push_back(backend::Greetings{.language = "german", .text = "halo", .color = backend::Color::GREEN});
+    vector<pybx::backend::Greetings> gs;
+    gs.push_back(pybx::backend::Greetings{.language = "russian", .text = "privet", .color = pybx::backend::Color::GREEN});
+    gs.push_back(pybx::backend::Greetings{.language = "german", .text = "halo", .color = pybx::backend::Color::GREEN});
 
     auto new_gs = hello_rop.reformatGreetings(gs);
     cout << "got " << new_gs.size() << " greetings" << endl;
@@ -37,10 +37,10 @@ ADD_ACTION("test_call[]", [](const Fuargs::args&) {
 
 ADD_ACTION("test_cb[]", [](const Fuargs::args&) {
     pybx::Communicator comm;
-    auto hello_rop = comm.get_rop<backend::Hello>("ws://localhost:8080/", "hello");
+    auto hello_rop = comm.get_rop<pybx::backend::Hello>("ws://localhost:8080/", "hello");
 
     auto hellocb_o = make_shared<HelloCBI>();
-    auto hellocb_rop = comm.add_object<backend::HelloCB>(hellocb_o);
+    auto hellocb_rop = comm.add_object<pybx::backend::HelloCB>(hellocb_o);
     hello_rop.register_hello_cb(hellocb_rop);
 
     auto gg = hello_rop.sayHello("hi");
